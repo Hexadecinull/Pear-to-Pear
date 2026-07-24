@@ -1,9 +1,4 @@
-import {
-  CHUNK_SIZE,
-  CHUNK_HEADER_BYTES,
-  encodeChunkHeader,
-  decodeChunkHeader,
-} from './protocol';
+import { CHUNK_SIZE, CHUNK_HEADER_BYTES, encodeChunkHeader, decodeChunkHeader } from './protocol';
 import type { DataChannelLike } from './channel';
 import type { SecureChannel } from './crypto';
 import { liveConnection, appState } from './stores';
@@ -90,7 +85,11 @@ async function handleIncomingFrame(frame: ArrayBuffer): Promise<void> {
   } catch {
     appState.update((s) => ({
       ...s,
-      transfer: { ...s.transfer, phase: 'error', error: 'A chunk failed integrity verification and was rejected.' },
+      transfer: {
+        ...s.transfer,
+        phase: 'error',
+        error: 'A chunk failed integrity verification and was rejected.',
+      },
     }));
     return;
   }
@@ -152,12 +151,19 @@ export async function acceptIncoming(): Promise<void> {
     }
     appState.update((s) => ({
       ...s,
-      transfer: { ...s.transfer, phase: 'error', error: 'Could not prepare a place to save the files.' },
+      transfer: {
+        ...s.transfer,
+        phase: 'error',
+        error: 'Could not prepare a place to save the files.',
+      },
     }));
     return;
   }
 
-  appState.update((s) => ({ ...s, transfer: { ...s.transfer, phase: 'transferring', startedAt: Date.now() } }));
+  appState.update((s) => ({
+    ...s,
+    transfer: { ...s.transfer, phase: 'transferring', startedAt: Date.now() },
+  }));
   signaling.send({ type: 'receive-ready' });
 }
 
@@ -175,11 +181,15 @@ export function validateSelection(files: File[]): { ok: true } | { ok: false; er
   const maxTotalBytes = limits?.maxTotalBytes ?? 10 * 1024 ** 3;
 
   if (files.length === 0) return { ok: false, error: 'Choose at least one file.' };
-  if (files.length > maxFiles) return { ok: false, error: `You can send at most ${maxFiles} files at once.` };
+  if (files.length > maxFiles)
+    return { ok: false, error: `You can send at most ${maxFiles} files at once.` };
 
   const total = files.reduce((sum, f) => sum + f.size, 0);
   if (total > maxTotalBytes) {
-    return { ok: false, error: `That batch is ${formatBytes(total)} — the limit is ${formatBytes(maxTotalBytes)}.` };
+    return {
+      ok: false,
+      error: `That batch is ${formatBytes(total)} — the limit is ${formatBytes(maxTotalBytes)}.`,
+    };
   }
   return { ok: true };
 }
@@ -189,13 +199,19 @@ export async function sendFiles(files: File[]): Promise<void> {
   const secure = liveConnection.secure;
   const signaling = getSignaling();
   if (!channel || !secure || !signaling) {
-    appState.update((s) => ({ ...s, transfer: { ...s.transfer, phase: 'error', error: 'Not connected to a peer.' } }));
+    appState.update((s) => ({
+      ...s,
+      transfer: { ...s.transfer, phase: 'error', error: 'Not connected to a peer.' },
+    }));
     return;
   }
 
   const validation = validateSelection(files);
   if (!validation.ok) {
-    appState.update((s) => ({ ...s, transfer: { ...s.transfer, phase: 'error', error: validation.error } }));
+    appState.update((s) => ({
+      ...s,
+      transfer: { ...s.transfer, phase: 'error', error: validation.error },
+    }));
     return;
   }
 
@@ -236,7 +252,10 @@ export async function sendFiles(files: File[]): Promise<void> {
     return;
   }
 
-  appState.update((s) => ({ ...s, transfer: { ...s.transfer, phase: 'transferring', startedAt: Date.now() } }));
+  appState.update((s) => ({
+    ...s,
+    transfer: { ...s.transfer, phase: 'transferring', startedAt: Date.now() },
+  }));
 
   fileLoop: for (let fileIndex = 0; fileIndex < files.length; fileIndex++) {
     const file = files[fileIndex];

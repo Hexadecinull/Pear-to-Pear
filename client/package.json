@@ -2,21 +2,33 @@
   "name": "pear-to-pear-client",
   "version": "1.0.0",
   "description": "Pear-to-Pear frontend — single-page P2P encrypted file transfer UI",
-  "license": "GPL-3.0-only",
+  "license": "AGPL-3.0-only",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "check": "svelte-check --tsconfig ./tsconfig.json"
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@sveltejs/vite-plugin-svelte": "^7.2.0",
     "@tsconfig/svelte": "^5.0.4",
+    "eslint": "^10.7.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-svelte": "^3.22.0",
+    "globals": "^17.7.0",
+    "prettier": "^3.9.6",
+    "prettier-plugin-svelte": "^4.1.1",
     "svelte": "^5.56.7",
     "svelte-check": "^4.0.0",
+    "svelte-eslint-parser": "^1.8.0",
     "typescript": "^5.5.0",
+    "typescript-eslint": "^8.65.0",
     "vite": "^8.1.5"
   }
 }

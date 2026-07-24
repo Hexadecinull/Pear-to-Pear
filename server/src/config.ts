@@ -14,7 +14,10 @@ function bool(name: string, fallback: boolean): boolean {
 function list(name: string, fallback: string[]): string[] {
   const raw = process.env[name];
   if (!raw) return fallback;
-  return raw.split(',').map((s) => s.trim()).filter(Boolean);
+  return raw
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
 }
 
 export const config = {

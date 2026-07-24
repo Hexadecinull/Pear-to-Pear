@@ -15,7 +15,7 @@ export function formatSpeed(bytesPerSecond: number): string {
 }
 
 export function formatDuration(seconds: number): string {
-  if (!Number.isFinite(seconds) || seconds < 0) return '\u2014';
+  if (!Number.isFinite(seconds) || seconds < 0) return '—';
   if (seconds < 60) return `${Math.ceil(seconds)}s`;
   const minutes = Math.floor(seconds / 60);
   const secs = Math.round(seconds % 60);

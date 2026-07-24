@@ -69,7 +69,11 @@ function onControl(peer: Peer, registry: PeerRegistry, raw: RawData): void {
 
     case 'regenerate': {
       if (peer.session) {
-        send(peer.socket, { type: 'error', code: 'bonded', message: 'Unbond before regenerating.' });
+        send(peer.socket, {
+          type: 'error',
+          code: 'bonded',
+          message: 'Unbond before regenerating.',
+        });
         return;
       }
       const code = registry.regenerate(peer);
@@ -80,7 +84,7 @@ function onControl(peer: Peer, registry: PeerRegistry, raw: RawData): void {
     case 'bond': {
       const code = msg.code?.trim().toLowerCase();
       if (!code || !PEER_CODE_PATTERN.test(code)) {
-        send(peer.socket, { type: 'bond-failed', reason: 'That code doesn\u2019t look right.' });
+        send(peer.socket, { type: 'bond-failed', reason: 'That code doesn’t look right.' });
         return;
       }
       const result = registry.bond(peer, code);
@@ -119,7 +123,12 @@ function onControl(peer: Peer, registry: PeerRegistry, raw: RawData): void {
       if (!session || !other) return;
 
       if (msg.fileCount < 1 || msg.fileCount > config.maxFiles) {
-        notifyBothAndEnd(peer, registry, 'server', `Batches are limited to ${config.maxFiles} files.`);
+        notifyBothAndEnd(
+          peer,
+          registry,
+          'server',
+          `Batches are limited to ${config.maxFiles} files.`,
+        );
         return;
       }
       if (msg.totalBytes < 0 || msg.totalBytes > config.maxTotalBytes) {
@@ -155,9 +164,10 @@ function onControl(peer: Peer, registry: PeerRegistry, raw: RawData): void {
       const session = peer.session;
       if (!session) return;
       const other = session.initiator === peer ? session.responder : session.initiator;
-      const by = session.senderRole === (session.initiator === peer ? 'initiator' : 'responder')
-        ? 'sender'
-        : 'receiver';
+      const by =
+        session.senderRole === (session.initiator === peer ? 'initiator' : 'responder')
+          ? 'sender'
+          : 'receiver';
       send(other.socket, { type: 'cancelled', by, reason: msg.reason });
       resetSessionByteCounters(peer);
       return;
@@ -180,12 +190,7 @@ function resetSessionByteCounters(peer: Peer): void {
   session.senderRole = null;
 }
 
-function notifyBothAndEnd(
-  peer: Peer,
-  registry: PeerRegistry,
-  by: 'server',
-  reason: string,
-): void {
+function notifyBothAndEnd(peer: Peer, registry: PeerRegistry, by: 'server', reason: string): void {
   const session = peer.session;
   if (!session) return;
   for (const p of [session.initiator, session.responder]) {

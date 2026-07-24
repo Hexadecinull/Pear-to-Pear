@@ -2,7 +2,7 @@
   "name": "pear-to-pear",
   "version": "1.0.0",
   "private": true,
-  "license": "GPL-3.0-only",
+  "license": "AGPL-3.0-only",
   "description": "Free, open-source, end-to-end encrypted peer-to-peer file transfer — convenience scripts. See client/ and server/ for the actual projects.",
   "scripts": {
     "install:all": "npm --prefix client install && npm --prefix server install",

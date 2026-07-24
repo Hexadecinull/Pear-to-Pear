@@ -52,7 +52,7 @@
 
   let connectionLabel = $derived(
     $appState.connection === 'connecting'
-      ? 'Connecting\u2026'
+      ? 'Connecting…'
       : $appState.connection === 'connected'
         ? 'Connected'
         : 'Disconnected',
@@ -92,14 +92,14 @@
     const combined = [...selectedFiles, ...newFiles];
     const { maxFiles, maxTotalBytes } = $appState.limits;
     if (combined.length > maxFiles) {
-      pickerNotice = `You can select up to ${maxFiles} files at once \u2014 kept the first ${maxFiles}.`;
+      pickerNotice = `You can select up to ${maxFiles} files at once — kept the first ${maxFiles}.`;
       selectedFiles = combined.slice(0, maxFiles);
     } else {
       selectedFiles = combined;
     }
     const total = selectedFiles.reduce((sum, f) => sum + f.size, 0);
     if (total > maxTotalBytes) {
-      pickerNotice = `That's ${formatBytes(total)} total \u2014 the limit is ${formatBytes(maxTotalBytes)}. Remove some files.`;
+      pickerNotice = `That's ${formatBytes(total)} total — the limit is ${formatBytes(maxTotalBytes)}. Remove some files.`;
     } else if (combined.length <= maxFiles) {
       pickerNotice = null;
     }
@@ -144,7 +144,7 @@
     }
 
     if (sawFolder) {
-      pickerNotice = 'Folders aren\u2019t supported \u2014 drop individual files instead.';
+      pickerNotice = 'Folders aren’t supported — drop individual files instead.';
     }
     addFiles(incoming);
   }
@@ -208,10 +208,12 @@
         <div class="node-pair">
           <div class="node">
             <h2>You</h2>
-            <code class="peer-code">{formatCode($appState.myCode) || '\u2026'}</code>
+            <code class="peer-code">{formatCode($appState.myCode) || '…'}</code>
             <div class="node-actions">
               <button onclick={copyCode}>{copyFeedback ? 'Copied' : 'Copy code'}</button>
-              <button onclick={regenerateCode} disabled={$appState.bond !== 'idle'}>Regenerate</button>
+              <button onclick={regenerateCode} disabled={$appState.bond !== 'idle'}
+                >Regenerate</button
+              >
             </div>
           </div>
 
@@ -220,7 +222,7 @@
           <div class="node">
             <h2>Peer</h2>
             {#if $appState.bond === 'bonded'}
-              <p class="hint">Securing connection\u2026</p>
+              <p class="hint">Securing connection…</p>
             {:else}
               <input
                 class="code-input"
@@ -232,8 +234,12 @@
                 onkeydown={(e) => e.key === 'Enter' && submitPeerCode()}
               />
               <div class="node-actions">
-                <button class="primary" onclick={submitPeerCode} disabled={$appState.bond === 'bonding'}>
-                  {$appState.bond === 'bonding' ? 'Connecting\u2026' : 'Connect'}
+                <button
+                  class="primary"
+                  onclick={submitPeerCode}
+                  disabled={$appState.bond === 'bonding'}
+                >
+                  {$appState.bond === 'bonding' ? 'Connecting…' : 'Connect'}
                 </button>
               </div>
             {/if}
@@ -248,21 +254,21 @@
         <li>No accounts</li>
         <li>End-to-end encrypted</li>
         <li>Nothing stored</li>
-        <li>Open source \u00b7 GPL-3.0</li>
+        <li>Open source · AGPL-3.0</li>
       </ul>
     {:else}
       <section class="connected-bar">
         <div class="connected-info">
           <span class="badge" class:direct={$appState.channelIsDirect}>
-            {$appState.channelIsDirect ? 'Direct P2P' : 'Relayed \u00b7 encrypted'}
+            {$appState.channelIsDirect ? 'Direct P2P' : 'Relayed · encrypted'}
           </span>
           {#if $appState.verificationCode}
             <details class="verify">
               <summary>Security code: {$appState.verificationCode}</summary>
               <p>
                 Read this number to your peer over another channel (voice, chat) to rule out a
-                tampered connection. It's derived from both sides' one-time keys, so it only
-                matches if you're really talking to each other.
+                tampered connection. It's derived from both sides' one-time keys, so it only matches
+                if you're really talking to each other.
               </p>
             </details>
           {/if}
@@ -289,7 +295,7 @@
             />
             <span class="dropzone-title">Drop files here</span>
             <span class="dropzone-sub">
-              or click to browse \u2014 up to {$appState.limits.maxFiles} files, {formatBytes(
+              or click to browse — up to {$appState.limits.maxFiles} files, {formatBytes(
                 $appState.limits.maxTotalBytes,
               )} total. No folders.
             </span>
@@ -305,15 +311,17 @@
                 <li>
                   <span class="file-name">{file.name}</span>
                   <span class="file-size">{formatBytes(file.size)}</span>
-                  <button class="icon-btn" onclick={() => removeFile(i)} aria-label="Remove {file.name}"
-                    >\u00d7</button
+                  <button
+                    class="icon-btn"
+                    onclick={() => removeFile(i)}
+                    aria-label="Remove {file.name}">×</button
                   >
                 </li>
               {/each}
             </ul>
             <div class="picker-summary">
               <span
-                >{selectedFiles.length} / {$appState.limits.maxFiles} files \u00b7 {formatBytes(
+                >{selectedFiles.length} / {$appState.limits.maxFiles} files · {formatBytes(
                   selectedTotalBytes,
                 )} / {formatBytes($appState.limits.maxTotalBytes)}</span
               >
@@ -330,9 +338,8 @@
         <section class="incoming">
           <h2>Incoming transfer</h2>
           <p class="hint">
-            {$appState.transfer.files.length} file{$appState.transfer.files.length === 1 ? '' : 's'} \u00b7 {formatBytes(
-              $appState.transfer.totalBytes,
-            )}
+            {$appState.transfer.files.length} file{$appState.transfer.files.length === 1 ? '' : 's'} ·
+            {formatBytes($appState.transfer.totalBytes)}
           </p>
           <ul class="file-list">
             {#each $appState.transfer.files as f, i (i)}
@@ -350,22 +357,31 @@
       {:else if $appState.transfer.phase === 'awaiting-peer' && $appState.transfer.role === 'sender'}
         <section class="waiting">
           <div class="spinner" aria-hidden="true"></div>
-          <p>Waiting for your peer to accept\u2026</p>
+          <p>Waiting for your peer to accept…</p>
           <button class="ghost" onclick={handleCancel}>Cancel</button>
         </section>
       {:else if $appState.transfer.phase === 'transferring'}
         <section class="transferring">
           <div class="overall">
-            <div class="overall-bar"><div class="overall-fill" style="width: {overallPct}%"></div></div>
+            <div class="overall-bar">
+              <div class="overall-fill" style="width: {overallPct}%"></div>
+            </div>
             <div class="overall-meta">
-              <span>{formatBytes($appState.transfer.bytesDone)} / {formatBytes($appState.transfer.totalBytes)}</span>
+              <span
+                >{formatBytes($appState.transfer.bytesDone)} / {formatBytes(
+                  $appState.transfer.totalBytes,
+                )}</span
+              >
               <span>{formatSpeed(speedBps)}</span>
               <span>ETA {formatDuration(etaSeconds)}</span>
             </div>
           </div>
           <ul class="file-list">
             {#each $appState.transfer.files as f, i (i)}
-              <li class:active={i === $appState.transfer.activeFileIndex} class:done={f.bytesDone >= f.size}>
+              <li
+                class:active={i === $appState.transfer.activeFileIndex}
+                class:done={f.bytesDone >= f.size}
+              >
                 <span class="file-name">{f.name}</span>
                 <span class="file-size">{formatBytes(f.bytesDone)} / {formatBytes(f.size)}</span>
               </li>
@@ -375,11 +391,10 @@
         </section>
       {:else if $appState.transfer.phase === 'done'}
         <section class="done">
-          <p class="done-check">\u2713 Transfer complete</p>
+          <p class="done-check">✓ Transfer complete</p>
           <p class="hint">
-            {$appState.transfer.files.length} file{$appState.transfer.files.length === 1 ? '' : 's'} \u00b7 {formatBytes(
-              $appState.transfer.totalBytes,
-            )}
+            {$appState.transfer.files.length} file{$appState.transfer.files.length === 1 ? '' : 's'} ·
+            {formatBytes($appState.transfer.totalBytes)}
           </p>
           <button class="primary" onclick={handleDone}>Done</button>
         </section>
@@ -398,8 +413,10 @@
   </main>
 
   <footer class="foot">
-    <span>Free \u00b7 open source \u00b7 GPL-3.0</span>
-    <a href="https://github.com/Hexadecinull/Pear-to-Pear" target="_blank" rel="noreferrer">Source</a>
+    <span>Free · open source · AGPL-3.0</span>
+    <a href="https://github.com/Hexadecinull/Pear-to-Pear" target="_blank" rel="noreferrer"
+      >Source</a
+    >
   </footer>
 </div>
 
@@ -570,7 +587,9 @@
     padding: 10px 14px;
     cursor: pointer;
     font-size: 0.88rem;
-    transition: border-color 0.15s ease, background 0.15s ease;
+    transition:
+      border-color 0.15s ease,
+      background 0.15s ease;
   }
   button:hover:not(:disabled) {
     border-color: var(--border-strong);
@@ -704,7 +723,9 @@
     border-radius: var(--radius-sm);
     padding: 36px 16px;
     cursor: pointer;
-    transition: border-color 0.15s ease, background 0.15s ease;
+    transition:
+      border-color 0.15s ease,
+      background 0.15s ease;
   }
   .dropzone:hover,
   .dropzone.active {
@@ -849,7 +870,12 @@
     .link-line.active {
       width: 3px;
       height: 28px;
-      background-image: linear-gradient(180deg, var(--accent-dim), var(--accent), var(--accent-dim));
+      background-image: linear-gradient(
+        180deg,
+        var(--accent-dim),
+        var(--accent),
+        var(--accent-dim)
+      );
       animation: sweep-v 1.6s linear infinite;
     }
     @keyframes sweep-v {

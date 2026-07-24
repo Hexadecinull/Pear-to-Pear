@@ -14,7 +14,10 @@ let peerPublicKeyB64: string | null = null;
 
 function stunUrls(): string[] {
   const raw = (import.meta.env.VITE_STUN_URLS as string | undefined) ?? '';
-  return raw.split(',').map((s) => s.trim()).filter(Boolean);
+  return raw
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
 }
 
 export async function startSession(): Promise<void> {
@@ -26,7 +29,12 @@ export async function startSession(): Promise<void> {
   });
 
   signaling.on('welcome', (msg) => {
-    appState.update((s) => ({ ...s, connection: 'connected', myCode: msg.code, limits: msg.limits }));
+    appState.update((s) => ({
+      ...s,
+      connection: 'connected',
+      myCode: msg.code,
+      limits: msg.limits,
+    }));
   });
 
   signaling.on('code', (msg) => {
@@ -59,7 +67,15 @@ export async function startSession(): Promise<void> {
     }));
   });
 
-  await signaling.connect(resolveSignalingUrl());
+  try {
+    await signaling.connect(resolveSignalingUrl());
+  } catch {
+    // The 'close' listener above already updates appState to reflect
+    // this (WebSocket connection failures fire both 'error' and
+    // 'close'); this catch exists purely so the rejection doesn't
+    // surface as an unhandled promise rejection in the console.
+    return;
+  }
 
   // Keep the signaling connection alive through idle NAT/proxy timeouts.
   setInterval(() => signaling?.send({ type: 'ping' }), 25_000);
@@ -108,7 +124,7 @@ export function regenerateCode(): void {
 export function bondWithCode(rawCode: string): void {
   const code = rawCode.trim().toLowerCase();
   if (!PEER_CODE_PATTERN.test(code)) {
-    appState.update((s) => ({ ...s, bondError: 'That code should be 64 characters (0\u20139, a\u2013f).' }));
+    appState.update((s) => ({ ...s, bondError: 'That code should be 64 characters (0–9, a–f).' }));
     return;
   }
   appState.update((s) => ({ ...s, bond: 'bonding', bondError: null }));

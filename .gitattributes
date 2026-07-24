@@ -1,0 +1,36 @@
+# Auto-detect text files and normalize line endings to LF in the
+# repository, regardless of what OS someone commits from.
+* text=auto eol=lf
+
+# Shell scripts specifically must keep LF even on a Windows checkout —
+# a CRLF shebang line silently breaks them on Linux.
+*.sh text eol=lf
+deploy/deploy.sh text eol=lf
+
+# Source and config files — explicit, so `text=auto`'s guesswork never
+# has to decide.
+*.ts text eol=lf
+*.js text eol=lf
+*.mjs text eol=lf
+*.svelte text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+Dockerfile text eol=lf
+*.service text eol=lf
+
+# Binary — never touch, never diff as text.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.woff2 binary
+
+# SVGs are XML text, but treated as generated/vector art rather than
+# hand-diffed source.
+*.svg text eol=lf diff
+
+# Lockfiles are machine-generated: keep them out of GitHub's language
+# stats and don't expect anyone to review their diffs line by line.
+package-lock.json linguist-generated=true -diff

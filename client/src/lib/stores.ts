@@ -8,13 +8,7 @@ export type BondStatus = 'idle' | 'bonding' | 'bonded';
 export type ChannelState = 'negotiating' | 'ready' | null;
 export type TransferRole = 'sender' | 'receiver' | null;
 export type TransferPhase =
-  | 'idle'
-  | 'selecting'
-  | 'awaiting-peer'
-  | 'transferring'
-  | 'done'
-  | 'error'
-  | 'cancelled';
+  'idle' | 'selecting' | 'awaiting-peer' | 'transferring' | 'done' | 'error' | 'cancelled';
 
 export interface FileProgress {
   name: string;

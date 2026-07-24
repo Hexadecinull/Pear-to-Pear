@@ -26,8 +26,11 @@ interface FileSystemWritableStreamLike {
 }
 
 export function supportsFileSystemAccess(): boolean {
-  return typeof (window as unknown as { showDirectoryPicker?: unknown }).showDirectoryPicker ===
-    'function' || typeof (window as unknown as { showSaveFilePicker?: unknown }).showSaveFilePicker === 'function';
+  return (
+    typeof (window as unknown as { showDirectoryPicker?: unknown }).showDirectoryPicker ===
+      'function' ||
+    typeof (window as unknown as { showSaveFilePicker?: unknown }).showSaveFilePicker === 'function'
+  );
 }
 
 /**
@@ -50,7 +53,9 @@ export async function createOutputSink(names: string[]): Promise<OutputSink> {
       const dir = await w.showDirectoryPicker();
       const streams: FileSystemWritableStreamLike[] = [];
       for (const name of names) {
-        const handle = await dir.getFileHandle(uniqueName(name, streams.length, names), { create: true });
+        const handle = await dir.getFileHandle(uniqueName(name, streams.length, names), {
+          create: true,
+        });
         streams.push(await handle.createWritable());
       }
       return new FileSystemSink(streams);

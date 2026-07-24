@@ -11,8 +11,8 @@
  * Design, in one paragraph: both browsers generate an ephemeral ECDH
  * keypair and exchange public keys through the signaling relay. Each
  * derives the same shared secret via ECDH, then HKDF-expands it into two
- * *directional* AES-256-GCM keys (initiator\u2192responder and
- * responder\u2192initiator) so the two possible senders never share a
+ * *directional* AES-256-GCM keys (initiator→responder and
+ * responder→initiator) so the two possible senders never share a
  * nonce space. A short numeric code derived from both public keys is
  * shown on both screens so two cautious people can read it to each other
  * and rule out a man-in-the-middle server — see docs/SECURITY.md.
@@ -104,7 +104,12 @@ export class SecureChannel {
     const hkdfKey = await this.hkdfKey();
     const salt = await this.saltPromise;
     const bits = await crypto.subtle.deriveBits(
-      { name: 'HKDF', hash: HKDF_HASH, salt, info: new TextEncoder().encode(INFO_SAS) } as HkdfParams,
+      {
+        name: 'HKDF',
+        hash: HKDF_HASH,
+        salt,
+        info: new TextEncoder().encode(INFO_SAS),
+      } as HkdfParams,
       hkdfKey,
       24,
     );

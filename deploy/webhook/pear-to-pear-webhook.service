@@ -1,0 +1,24 @@
+[Unit]
+Description=Pear-to-Pear GitHub webhook auto-deploy listener
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/pear-to-pear/deploy/webhook
+EnvironmentFile=/opt/pear-to-pear/deploy/webhook/.env
+ExecStart=/usr/bin/node listener.mjs
+Restart=on-failure
+RestartSec=2
+User=pear-to-pear
+
+# This process (unlike the main app's unit) genuinely needs to write —
+# deploy.sh does a `git reset --hard` and rebuilds inside REPO_DIR — so
+# it does NOT use ProtectSystem=strict. ReadWritePaths grants exactly
+# the one directory it needs.
+NoNewPrivileges=true
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/opt/pear-to-pear
+
+[Install]
+WantedBy=multi-user.target

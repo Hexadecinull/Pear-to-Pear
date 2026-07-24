@@ -1,0 +1,12 @@
+# Only needed if you run deploy.sh with DEPLOY_MODE=systemd (i.e. you're
+# NOT using Docker for the main app). It lets the webhook listener's
+# unprivileged user restart exactly one systemd unit — nothing else —
+# without a password prompt (deploy.sh runs unattended, triggered by a
+# webhook, so an interactive sudo prompt would just hang forever).
+#
+# Install with:
+#   sudo cp deploy/webhook/sudoers-pear-to-pear-deploy.example /etc/sudoers.d/pear-to-pear-deploy
+#   sudo chmod 440 /etc/sudoers.d/pear-to-pear-deploy
+#   sudo visudo -c   # validate syntax before trusting it
+
+pear-to-pear ALL=(root) NOPASSWD: /usr/bin/systemctl restart pear-to-pear
