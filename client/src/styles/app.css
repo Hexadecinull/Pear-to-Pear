@@ -1,0 +1,85 @@
+:root {
+  color-scheme: dark;
+
+  /* Deep ink-green backdrop -- quiet enough that the accent (the one
+     color in the whole system with any saturation) reads as signal:
+     a live connection, a running transfer, an action to take. */
+  --bg: #0b1310;
+  --surface: #131c18;
+  --surface-raised: #1a251f;
+  --border: #26332c;
+  --border-strong: #384a40;
+
+  --text: #eaf2ec;
+  --text-muted: #8ba095;
+  --text-dim: #5e7268;
+
+  --accent: #c7e639;
+  --accent-dim: #97ac2b;
+  --accent-ink: #16210a;
+
+  --danger: #ef7a6d;
+  --danger-dim: #3a2422;
+  --success: #6fd3a0;
+
+  --radius: 14px;
+  --radius-sm: 8px;
+
+  --font-mono: ui-monospace, 'Cascadia Code', 'SF Mono', 'JetBrains Mono', Consolas,
+    'Roboto Mono', monospace;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial,
+    sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  min-height: 100dvh;
+  background-image: radial-gradient(circle at 20% -10%, rgba(199, 230, 57, 0.07), transparent 45%),
+    radial-gradient(circle at 85% 10%, rgba(111, 211, 160, 0.05), transparent 40%);
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+input {
+  font: inherit;
+  color: inherit;
+}
+
+a {
+  color: var(--accent);
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}

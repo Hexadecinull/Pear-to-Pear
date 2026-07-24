@@ -1,0 +1,28 @@
+# Example nginx config for a self-hosted deploy. Unlike Caddy, nginx
+# needs the WebSocket Upgrade/Connection headers forwarded explicitly.
+# TLS (a "listen 443 ssl" block and certificates, e.g. via certbot) is
+# omitted here for brevity — terminate TLS in front of this server block
+# however you normally do.
+
+server {
+    listen 80;
+    server_name pear.example.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:8787;
+        proxy_http_version 1.1;
+
+        # Required for the WebSocket upgrade (signaling + relay traffic).
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Large file transfers can mean a long-lived connection —
+        # don't let nginx time out an idle-looking but still-active socket.
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+    }
+}

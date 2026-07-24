@@ -1,0 +1,23 @@
+[Unit]
+Description=Pear-to-Pear signaling/relay server
+After=network.target
+
+[Service]
+Type=simple
+# Adjust these two paths for your install location and OS user.
+WorkingDirectory=/opt/pear-to-pear/server
+User=pear-to-pear
+EnvironmentFile=/opt/pear-to-pear/server/.env
+ExecStart=/usr/bin/node dist/index.js
+Restart=on-failure
+RestartSec=2
+
+# Basic hardening — safe defaults for a small Node service with no need
+# to write outside its own directory (it never writes files at all).
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
