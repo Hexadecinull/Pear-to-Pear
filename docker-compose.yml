@@ -4,13 +4,8 @@ services:
     restart: unless-stopped
     ports:
       - '127.0.0.1:8787:8787'
-    environment:
-      # Full reference: server/.env.example. Uncomment/adjust as needed.
-      - PORT=8787
-      - ALLOWED_ORIGINS=https://pear.example.com
-      - TRUST_PROXY=true
-      # - MAX_TOTAL_BYTES=10737418240
-      # - MAX_FILES_PER_TRANSFER=500
+    env_file:
+      - .env
 
 # Bound to 127.0.0.1 on purpose: put a reverse proxy (Caddy/nginx/Cloudflare
 # Tunnel) in front for TLS instead of exposing this port directly to the

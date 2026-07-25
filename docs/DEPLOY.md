@@ -30,7 +30,8 @@ a `docker-compose.yml` to run it.
 ```bash
 git clone https://github.com/Hexadecinull/Pear-to-Pear.git
 cd Pear-to-Pear
-cp server/.env.example .env   # optional — see below
+cp server/.env.example .env
+nano .env   # at minimum, set ALLOWED_ORIGINS to your real domain
 docker compose up -d --build
 ```
 
@@ -39,18 +40,12 @@ comment in `docker-compose.yml`) — it's deliberately **not** exposed
 directly to the internet. Put a reverse proxy in front of it for TLS;
 see "Reverse proxy / TLS" below.
 
-To pass environment variables (see the full reference in
-[`server/.env.example`](../server/.env.example)), either edit the
-`environment:` block in `docker-compose.yml` directly, or point Compose
-at an env file:
-
-```yaml
-services:
-  pear-to-pear:
-    build: .
-    env_file: .env
-    # ...
-```
+`docker-compose.yml` loads every variable in `.env` via `env_file:` —
+see the full reference of what you can set in
+[`server/.env.example`](../server/.env.example). This is the *only*
+place the container reads configuration from; there's no separate
+`environment:` block to also check, so editing `.env` and re-running
+`docker compose up -d --build` is always enough to pick up a change.
 
 To update after pulling new changes:
 
