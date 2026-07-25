@@ -211,22 +211,40 @@ REPO_DIR=/opt/pear-to-pear
 DEPLOY_MODE=docker        # or: systemd, if you're not using Docker
 ```
 
-### 2. If you're using `DEPLOY_MODE=systemd`
+### 2. Decide which user the listener runs as
 
-The listener needs permission to restart the app service without a
-password prompt (it runs unattended). A ready-to-adapt sudoers snippet
-is at
-[`deploy/webhook/sudoers-pear-to-pear-deploy.example`](../deploy/webhook/sudoers-pear-to-pear-deploy.example):
+The unit file ships with `User=CHANGE_ME` — it deliberately won't start
+until you fix this, rather than silently failing later (a wrong or
+missing user fails immediately with systemd status `217/USER`).
+
+- **`DEPLOY_MODE=docker`:** use any user already in the `docker` group
+  with write access to `REPO_DIR` — for a personal/single-user server,
+  this is usually just whichever account you've been running
+  `docker compose` as yourself (see Option A's setup above). No new
+  system user needed.
+- **`DEPLOY_MODE=systemd`:** use the same `pear-to-pear` system user
+  created in Option B's step 2 above — it already owns `REPO_DIR` and
+  already has the sudoers rule (below) to restart the app service.
+
+Either way, edit the unit file before installing it:
+
+```bash
+nano deploy/webhook/pear-to-pear-webhook.service
+# change: User=CHANGE_ME
+# to:     User=<your chosen user>
+```
+
+If you're using `DEPLOY_MODE=systemd`, the listener also needs
+permission to restart the app service without a password prompt (it
+runs unattended). A ready-to-adapt sudoers snippet is at
+[`deploy/webhook/sudoers-pear-to-pear-deploy.example`](../deploy/webhook/sudoers-pear-to-pear-deploy.example) —
+edit the username in it to match, then:
 
 ```bash
 sudo cp deploy/webhook/sudoers-pear-to-pear-deploy.example /etc/sudoers.d/pear-to-pear-deploy
 sudo chmod 440 /etc/sudoers.d/pear-to-pear-deploy
 sudo visudo -c
 ```
-
-If you're using `DEPLOY_MODE=docker` instead, the user running the
-listener just needs to be in the `docker` group (see Option A's setup
-above) — no sudoers changes needed.
 
 ### 3. Install the listener as a service
 
@@ -246,12 +264,28 @@ already have:
 - **Cloudflare Tunnel:** in the same tunnel's **Public Hostname** tab,
   add another entry with the *same* hostname you already use, but set a
   **Path** (e.g. `webhook`) pointing at `http://localhost:9000` (or
-  whatever `WEBHOOK_PORT` you set). Cloudflare matches the more specific
-  path rule first, falling through to your main app for everything
-  else. Your webhook URL is then
-  `https://your-domain.example/webhook`.
+  whatever `WEBHOOK_PORT` you set). **Rule order matters and isn't
+  automatic:** Cloudflare Tunnel evaluates public-hostname rules
+  top-to-bottom and stops at the first match, so this new `/webhook`
+  rule must appear *above* your existing catch-all rule for the same
+  hostname in the list — otherwise the catch-all matches first and your
+  webhook requests are silently routed to the main app instead (a 404
+  or the main app's own response, never reaching the listener). If the
+  dashboard's list doesn't let you drag this entry above the catch-all,
+  delete both entries and recreate them in the right order: the
+  `/webhook` rule first, the plain-hostname catch-all last. Your webhook
+  URL is then `https://your-domain.example/webhook`.
 - **Caddy/nginx:** add a second `location`/path block in your existing
-  config, proxying that one path to `127.0.0.1:9000` instead of 8787.
+  config, proxying that one path to `127.0.0.1:9000` instead of 8787 —
+  put it *before* the catch-all `location /` block, since these are
+  also evaluated in order for the same reason.
+
+To confirm the routing is actually correct rather than assuming it,
+`sudo journalctl -u pear-to-pear-webhook -f` while triggering a test
+delivery (GitHub's webhook settings page has a "Redeliver" button on
+any past delivery) — if nothing appears in the log, the request isn't
+reaching the listener at all, and the rule order above is the first
+thing to check.
 
 ### 5. Add the webhook on GitHub
 

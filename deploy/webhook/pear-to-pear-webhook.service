@@ -9,7 +9,18 @@ EnvironmentFile=/opt/pear-to-pear/deploy/webhook/.env
 ExecStart=/usr/bin/node listener.mjs
 Restart=on-failure
 RestartSec=2
-User=pear-to-pear
+
+# REQUIRED: replace this before installing the unit. This process needs
+# to actually be able to redeploy the app, so the user must already have
+# the right permissions for however you run the main app:
+#   - DEPLOY_MODE=docker: any user in the `docker` group with write
+#     access to REPO_DIR works — often just your own login user.
+#   - DEPLOY_MODE=systemd: use the same `pear-to-pear` system user
+#     created in docs/DEPLOY.md Option B (it already owns REPO_DIR and
+#     already has the sudoers rule to restart the app service).
+# Leaving this unset, or pointing it at a user that doesn't exist,
+# fails immediately with systemd status 217/USER.
+User=CHANGE_ME
 
 # This process (unlike the main app's unit) genuinely needs to write —
 # deploy.sh does a `git reset --hard` and rebuilds inside REPO_DIR — so
