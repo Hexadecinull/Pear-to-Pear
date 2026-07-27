@@ -259,7 +259,8 @@
       {#if $appState.onlineCount !== null}
         <div class="online-pill">
           <span class="online-dot" aria-hidden="true"></span>
-          {$appState.onlineCount} {$appState.onlineCount === 1 ? 'person' : 'people'} online
+          {$appState.onlineCount}
+          {$appState.onlineCount === 1 ? 'person' : 'people'} online
         </div>
       {/if}
     {:else}
