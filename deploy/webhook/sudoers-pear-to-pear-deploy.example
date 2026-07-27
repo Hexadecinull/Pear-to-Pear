@@ -1,6 +1,6 @@
 # Only needed if you run deploy.sh with DEPLOY_MODE=systemd (i.e. you're
 # NOT using Docker for the main app). It lets the webhook listener's
-# unprivileged user restart exactly one systemd unit — nothing else —
+# unprivileged user restart exactly one systemd unit, nothing else,
 # without a password prompt (deploy.sh runs unattended, triggered by a
 # webhook, so an interactive sudo prompt would just hang forever).
 #

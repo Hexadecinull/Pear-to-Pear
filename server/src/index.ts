@@ -6,6 +6,7 @@ import { config, isOriginAllowed } from './config.js';
 import { PeerRegistry } from './peerRegistry.js';
 import { attachConnection } from './signaling.js';
 import { RateLimiter } from './rateLimit.js';
+import { getOnlineCount } from './stats.js';
 
 const registry = new PeerRegistry();
 const connectionLimiter = new RateLimiter(config.rateLimitPerMinute);
@@ -27,6 +28,13 @@ const MIME: Record<string, string> = {
 const httpServer = createServer(async (req, res) => {
   if (req.url === '/healthz') {
     res.writeHead(200, { 'content-type': 'text/plain' }).end('ok');
+    return;
+  }
+
+  if (req.url === '/stats') {
+    res
+      .writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' })
+      .end(JSON.stringify({ online: getOnlineCount() }));
     return;
   }
 

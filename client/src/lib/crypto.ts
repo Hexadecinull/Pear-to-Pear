@@ -1,21 +1,9 @@
 /**
- * End-to-end encryption for the file data itself.
- *
- * The transport (WebRTC DataChannel or the WebSocket relay fallback) is
- * already encrypted in transit, but this layer exists so the guarantee
- * doesn't depend on transport choice, on the relay operator's honesty,
- * or on us getting the transport layer right: even a full server
- * compromise exposes only ciphertext, because the key never touches the
- * server.
- *
- * Design, in one paragraph: both browsers generate an ephemeral ECDH
- * keypair and exchange public keys through the signaling relay. Each
- * derives the same shared secret via ECDH, then HKDF-expands it into two
- * *directional* AES-256-GCM keys (initiator→responder and
- * responder→initiator) so the two possible senders never share a
- * nonce space. A short numeric code derived from both public keys is
- * shown on both screens so two cautious people can read it to each other
- * and rule out a man-in-the-middle server — see docs/SECURITY.md.
+ * End-to-end encryption for file data. The transport is already
+ * encrypted (WebRTC or the relay fallback), but this layer means a full
+ * server compromise still only exposes ciphertext, since the key never
+ * reaches the server. Full design in docs/ARCHITECTURE.md; the
+ * verification code's purpose is explained in docs/SECURITY.md.
  */
 
 const ECDH_PARAMS: EcKeyAlgorithm = { name: 'ECDH', namedCurve: 'P-256' } as EcKeyAlgorithm;
@@ -111,7 +99,7 @@ export class SecureChannel {
         info: new TextEncoder().encode(INFO_SAS),
       } as HkdfParams,
       hkdfKey,
-      24,
+      32,
     );
     const n = new DataView(bits).getUint32(0) & 0xffffff;
     return String(n % 1_000_000).padStart(6, '0');

@@ -2,7 +2,7 @@ import type { SignalingClient } from './signaling';
 
 /**
  * Whatever actually carries the encrypted chunk bytes for a transfer.
- * Two implementations exist — a direct RTCDataChannel (true P2P, see
+ * Two implementations exist: a direct RTCDataChannel (true P2P, see
  * webrtc.ts) and this file's RelayChannel (streamed through the server
  * when a direct route can't be established). transfer.ts is written
  * against this interface and doesn't know or care which one it got.

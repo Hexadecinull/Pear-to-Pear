@@ -16,10 +16,7 @@ export default tseslint.config(
       },
     },
     rules: {
-      // Server code deliberately throws typed errors it expects callers
-      // to narrow (see relay.ts's RelayLimitExceeded) — `any` should
-      // still be avoided, but we don't need the stricter
-      // no-unsafe-* rule tier for a codebase this size.
+      // Allow intentionally unused args/vars prefixed with _.
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     },
   },

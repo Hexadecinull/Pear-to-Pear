@@ -9,16 +9,16 @@ the security model, or just satisfy your own curiosity, start here.
 
 The project has five requirements that pull in different directions:
 
-1. **Peer-to-peer** — the name should mean something; files should go
+1. **Peer-to-peer**: the name should mean something. Files should go
    directly between browsers when possible.
-2. **A server is still involved** — for rendezvous at minimum, and as a
+2. **A server is still involved**: for rendezvous at minimum, and as a
    fallback data path when a direct connection can't be made.
-3. **The server must never be a storage bottleneck** — it should be able
+3. **The server must never be a storage bottleneck**: it should be able
    to relay thousands of simultaneous transfers without buffering whole
    files, or even large fractions of them, in memory.
-4. **Private and encrypted even from the server operator** — a full
+4. **Private and encrypted even from the server operator**: a full
    compromise of the server should expose no file content.
-5. **Trivial to self-host** — a single Node.js process, deployable
+5. **Trivial to self-host**: a single Node.js process, deployable
    behind an ordinary HTTPS reverse proxy or tunnel, no UDP ports, no TURN
    infrastructure required to get a working (if not always direct) setup.
 
@@ -53,13 +53,13 @@ It holds no database and writes nothing to disk.
 ## Rendezvous: peer codes and bonding
 
 On connection, the server generates a 64-character lowercase-hex string
-(32 random bytes — 256 bits of entropy, via Node's `crypto.randomBytes`)
+(32 random bytes, 256 bits of entropy, via Node's `crypto.randomBytes`)
 and sends it to the client as that client's **peer code**. The code:
 
 - Exists only as a key in an in-memory `Map` on the server, pointing at
   that specific WebSocket connection.
 - Is invalidated the instant the socket closes (refresh, network loss,
-  tab close) — there is nothing to time out or garbage-collect beyond an
+  tab close). There is nothing to time out or garbage-collect beyond an
   idle timer for codes that are never used (`CODE_IDLE_TIMEOUT_MS`,
   default 30 minutes).
 - Can be regenerated on demand (the `regenerate` message), which simply
@@ -70,13 +70,13 @@ When someone enters a code they received, their client sends
 and not already bonded to someone else, both sockets are linked into a
 **session** and the code is removed from the waiting pool (so it can't
 be reused by a third party mid-handshake). There is deliberately no
-"accept" step on the other side — receiving someone's code out-of-band
+"accept" step on the other side. Receiving someone's code out-of-band
 (you had to be given it directly) is treated as sufficient authorization
 to bond, matching how the product is meant to feel: you and one other
 specific person, nothing more.
 
 Bonding assigns one side the WebRTC `initiator` role (whoever's code was
-entered — they'll create the SDP offer) and the other `responder`. This
+entered, they'll create the SDP offer) and the other `responder`. This
 role only matters for the connection-negotiation handshake described
 below; either side can subsequently act as the file **sender** or
 **receiver** for a given transfer.
@@ -96,7 +96,7 @@ Once bonded, both browsers:
    only helps with NAT traversal, and only reveals to that STUN provider
    what any WebRTC application would reveal (see docs/PRIVACY.md).
 4. If the DataChannel reaches `open` within ~4 seconds, that's the
-   transport for this session — file bytes now go **directly** between
+   transport for this session. File bytes now go **directly** between
    the two browsers and the server is no longer involved in the data
    path at all.
 5. If it doesn't (symmetric NAT, restrictive corporate firewall, etc.),
@@ -106,7 +106,7 @@ Once bonded, both browsers:
    memory-safe at scale.
 
 Both paths present an identical interface to the rest of the client code
-(`DataChannelLike` in `client/src/lib/channel.ts`) — the chunking,
+(`DataChannelLike` in `client/src/lib/channel.ts`). The chunking,
 encryption, and UI code has no idea which one it's using, other than to
 display a "Direct P2P" vs. "Relayed" badge.
 
@@ -116,7 +116,7 @@ A conventional way to make WebRTC "always work" is to add a TURN server
 as a relay of last resort. We deliberately don't, for two reasons:
 
 - **Self-hosting simplicity.** TURN needs its own long-lived UDP (and
-  often TCP) listener with rotating credentials — real infrastructure to
+  often TCP) listener with rotating credentials. Real infrastructure to
   run and secure, on top of the main server. That directly conflicts
   with goal 5 above.
 - **It wouldn't survive the deployment path we optimized for anyway.**
@@ -156,7 +156,7 @@ Defined once per side, kept manually in sync
 | `bond-failed` | Bad/unknown/already-bonded code |
 | `peer-disconnected` | The other side's socket closed |
 | `signal` | Opaque payload forwarded from your peer |
-| `manifest` | Forwarded batch metadata (sizes only — see below) |
+| `manifest` | Forwarded batch metadata (sizes only, see below) |
 | `ready-to-receive` | Your peer accepted; start streaming |
 | `transfer-complete` | Forwarded completion notice |
 | `cancelled` | Transfer aborted, by which side |
@@ -172,7 +172,7 @@ server needs to enforce the 500-file / 10 GB caps server-side (so a
 modified client can't just skip client-side validation) and to let the
 receiver's UI show a progress bar before a single byte of file data has
 arrived. Filenames are considered content, not metadata that must be
-visible for the relay to function — so they travel separately, as the
+visible for the relay to function, so they travel separately, as the
 very first *encrypted* frame on the real data channel (direct or
 relayed), indistinguishable from file data to the server. See
 `client/src/lib/transfer.ts`, the reserved `fileIndex = 0xffff` sentinel
@@ -180,12 +180,12 @@ frame.
 
 ### Binary chunk framing
 
-Every chunk — whether it goes over the direct DataChannel or the relay
-— is one binary WebSocket/DataChannel message shaped like this:
+Every chunk, whether it goes over the direct DataChannel or the relay,
+is one binary WebSocket/DataChannel message shaped like this:
 
 ```
-byte 0-1   fileIndex     (uint16, big-endian) — which file in the batch
-byte 2-5   chunkIndex    (uint32, big-endian) — sequence within that file
+byte 0-1   fileIndex     (uint16, big-endian): which file in the batch
+byte 2-5   chunkIndex    (uint32, big-endian): sequence within that file
 byte 6     flags         bit 0 = last chunk of this file
 byte 7-18  nonce         12-byte AES-GCM nonce
 byte 19+   ciphertext    AES-256-GCM ciphertext, tag appended (16 bytes)
@@ -195,7 +195,7 @@ byte 19+   ciphertext    AES-256-GCM ciphertext, tag appended (16 bytes)
 manifest described above; real files are indexed `0..499`.
 
 The server (in the relay-fallback path) only ever reads the first 7
-bytes, purely for bookkeeping (see "The relay" below) — it forwards
+bytes, purely for bookkeeping (see "The relay" below). It forwards
 everything, including the nonce and ciphertext, as opaque bytes.
 
 Chunks are a fixed 64 KiB of plaintext before encryption
@@ -206,7 +206,7 @@ enough to keep progress bars smooth and backpressure fine-grained.
 ## Encryption
 
 Implemented in `client/src/lib/crypto.ts`. All primitives are the
-browser's native WebCrypto (`crypto.subtle`) — no custom cryptography,
+browser's native WebCrypto (`crypto.subtle`), no custom cryptography,
 no third-party crypto library.
 
 1. **Key agreement.** Both sides generate an ephemeral ECDH keypair
@@ -215,8 +215,8 @@ no third-party crypto library.
    browser.
 2. **Shared secret → directional keys.** Each side independently computes
    the same ECDH shared secret, then HKDF-expands it (SHA-256) into
-   **two separate** AES-256-GCM keys — one for initiator→responder
-   traffic, one for responder→initiator — using distinct HKDF `info`
+   **two separate** AES-256-GCM keys: one for initiator→responder
+   traffic, one for responder→initiator, using distinct HKDF `info`
    strings. This means the two possible senders in a session never share
    a nonce space, even though only one direction is normally active for
    any given transfer.
@@ -226,14 +226,14 @@ no third-party crypto library.
    each key is freshly derived per bonded session and used by exactly
    one sender, the counter can never repeat within that key's lifetime.
 4. **Per-chunk AEAD.** Every chunk is encrypted independently with
-   AES-256-GCM, which gives both confidentiality and integrity — a
+   AES-256-GCM, which gives both confidentiality and integrity. A
    tampered chunk fails to decrypt rather than silently corrupting data.
 5. **Verification code.** A short 6-digit number is derived (via a
    separate HKDF `info` string, independent of the transfer keys) from a
    hash of both sides' public keys, sorted so both browsers compute the
    same value regardless of role. It's shown to both people so they can
    read it to each other over any other channel. If it matches, the
-   connection wasn't tampered with in transit — see docs/SECURITY.md for
+   connection wasn't tampered with in transit, see docs/SECURITY.md for
    what this does and doesn't protect against.
 
 The server, in every configuration, only ever has access to: both
@@ -249,15 +249,15 @@ this gets popular" requirement. It lives in `server/src/relay.ts`.
 
 The relay never writes anything to disk, and it's built so that no
 single session can hold more than a small, fixed amount of data in
-process memory — whether the file being sent is 10 MB or the full 10 GB
+process memory, whether the file being sent is 10 MB or the full 10 GB
 cap:
 
 1. Every chunk arrives as one binary WebSocket frame. The server reads
    only the 7-byte header (for bookkeeping) and immediately calls
    `.send()` on the *other* peer's socket with the rest of the bytes,
    unmodified.
-2. Before forwarding, it checks the receiving socket's `bufferedAmount`
-   — how much data has been handed to the OS to send but not yet
+2. Before forwarding, it checks the receiving socket's `bufferedAmount`:
+   how much data has been handed to the OS to send but not yet
    delivered. If that backlog exceeds `MAX_INFLIGHT_BYTES_PER_SESSION`
    (16 MiB by default), the server **pauses** reading from the sender's
    socket (`ws`'s `.pause()`, which stops consuming from the underlying
@@ -266,7 +266,7 @@ cap:
    drops to half the threshold (hysteresis, to avoid rapid pause/resume
    thrashing), the sender's socket is resumed.
 4. Pausing a `ws` socket's reads causes genuine TCP backpressure all the
-   way back to the sending browser — it isn't a server-side illusion.
+   way back to the sending browser. It isn't a server-side illusion.
    The sender's `send()` calls naturally slow down because the OS socket
    buffer on *their* end fills up too.
 
@@ -277,7 +277,7 @@ a deliberate operator-tunable knob (lower it on memory-constrained
 hosts; raise it on fast, high-memory ones).
 
 The same class of flow control exists in the direct WebRTC path, using
-`RTCDataChannel.bufferedAmount` / `bufferedAmountLowThreshold` — the
+`RTCDataChannel.bufferedAmount` / `bufferedAmountLowThreshold`. The
 sender-side code in `client/src/lib/transfer.ts` waits for the local
 buffer to drain before reading and encrypting the next chunk, regardless
 of which transport is in use.
@@ -287,17 +287,17 @@ of which transport is in use.
 Two independent layers enforce the 500-files / 10 GB limits:
 
 - **Client-side**, before anything is sent (`validateSelection` in
-  `transfer.ts`) — purely for immediate user feedback.
+  `transfer.ts`), purely for immediate user feedback.
 - **Server-side**, at `manifest` time and again as a running tally during
   the actual relay (`config.maxFiles`, `config.maxTotalBytes` in
-  `server/src/config.ts`) — this is the layer that actually matters,
+  `server/src/config.ts`). This is the layer that actually matters,
   since it doesn't trust the client. A manifest that declares too many
   files or too many bytes ends the session immediately, before a single
   chunk is relayed; a session that somehow relays more raw bytes than
   the hard cap (e.g. a modified client lying in its manifest) is cut off
   mid-transfer.
 
-Neither layer ever inspects filenames or file content to do this — only
+Neither layer ever inspects filenames or file content to do this, only
 the plaintext sizes/counts described above.
 
 ## Multi-file delivery on the receiving end
@@ -312,12 +312,12 @@ require one):
   `showSaveFilePicker`; a batch of more than one uses
   `showDirectoryPicker` once and creates a writable stream per file
   inside it. Bytes are written as they arrive and each file's stream is
-  closed the moment its last chunk lands — the browser never holds more
+  closed the moment its last chunk lands. The browser never holds more
   than one in-flight chunk of any file in memory.
 - **Buffer-then-download**, the fallback for browsers without that API
   (Firefox and Safari, as of this writing): each file's decrypted chunks
   accumulate in memory as a `Blob`, and a normal download is triggered
-  once it's complete. The UI doesn't hide this tradeoff — it's simply
+  once it's complete. The UI doesn't hide this tradeoff, it's simply
   what "receive" means on those browsers today.
 
 ## Why the client and server aren't a monorepo
@@ -333,7 +333,7 @@ workspaces or similar. Two reasons:
 2. **The two copies are small and change rarely.** The tradeoff of
    occasionally having to update both files in the same PR is, in this
    project's judgment, worth it for the deployment simplicity. If you're
-   contributing a protocol change, update both and say so in your PR —
+   contributing a protocol change, update both and say so in your PR,
    see docs/CONTRIBUTING.md.
 
 ## Known simplifications
@@ -348,9 +348,9 @@ surprised:
   it; there's no checkpointing to resume a partial file. Re-bond and
   send again.
 - **No offline delivery.** Both people need to be online, bonded, and
-  present (or at least have a tab open) at the same time — this is a
+  present (or at least have a tab open) at the same time. This is a
   direct handoff tool, not a mailbox.
 - **STUN, not TURN, for NAT traversal help.** A direct connection isn't
   guaranteed; see "Why not TURN?" above. When it fails, you get the relay
-  path automatically — slower in theory, but still encrypted, still fast
+  path automatically, slower in theory, but still encrypted, still fast
   in practice, and it requires no extra infrastructure to self-host.

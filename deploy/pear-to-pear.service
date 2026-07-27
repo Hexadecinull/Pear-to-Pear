@@ -12,7 +12,7 @@ ExecStart=/usr/bin/node dist/index.js
 Restart=on-failure
 RestartSec=2
 
-# Basic hardening — safe defaults for a small Node service with no need
+# Basic hardening: safe defaults for a small Node service with no need
 # to write outside its own directory (it never writes files at all).
 NoNewPrivileges=true
 ProtectSystem=strict

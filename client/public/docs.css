@@ -1,0 +1,122 @@
+:root {
+  color-scheme: dark;
+  --bg: #0b1310;
+  --surface: #131c18;
+  --border: #26332c;
+  --text: #eaf2ec;
+  --text-muted: #8ba095;
+  --accent: #c7e639;
+  --font-mono: ui-monospace, 'Cascadia Code', 'SF Mono', 'JetBrains Mono', Consolas,
+    'Roboto Mono', monospace;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial,
+    sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+.doc-shell {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px 20px 64px;
+}
+
+.doc-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  margin-bottom: 28px;
+}
+
+.doc-header img {
+  width: 24px;
+  height: 24px;
+}
+
+.doc-header span {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.doc-content h1 {
+  font-size: 1.5rem;
+  margin: 0 0 0.6em;
+}
+
+.doc-content h2 {
+  font-size: 1.15rem;
+  margin: 2em 0 0.6em;
+  padding-top: 0.6em;
+  border-top: 1px solid var(--border);
+}
+
+.doc-content h3 {
+  font-size: 1rem;
+  margin: 1.5em 0 0.5em;
+}
+
+.doc-content p,
+.doc-content li {
+  line-height: 1.65;
+  color: var(--text);
+}
+
+.doc-content ul,
+.doc-content ol {
+  padding-left: 1.3em;
+}
+
+.doc-content li {
+  margin: 0.3em 0;
+}
+
+.doc-content a {
+  color: var(--accent);
+}
+
+.doc-content code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.1em 0.4em;
+}
+
+.doc-content blockquote {
+  margin: 1em 0;
+  padding: 0.4em 1em;
+  border-left: 3px solid var(--border);
+  color: var(--text-muted);
+}
+
+.doc-content hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 2em 0;
+}
+
+.doc-footer {
+  margin-top: 3em;
+  padding-top: 1.5em;
+  border-top: 1px solid var(--border);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.doc-footer a {
+  color: var(--text-muted);
+}

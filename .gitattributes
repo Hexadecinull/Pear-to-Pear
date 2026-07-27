@@ -2,12 +2,12 @@
 # repository, regardless of what OS someone commits from.
 * text=auto eol=lf
 
-# Shell scripts specifically must keep LF even on a Windows checkout —
+# Shell scripts specifically must keep LF even on a Windows checkout,
 # a CRLF shebang line silently breaks them on Linux.
 *.sh text eol=lf
 deploy/deploy.sh text eol=lf
 
-# Source and config files — explicit, so `text=auto`'s guesswork never
+# Source and config files, explicit, so `text=auto`'s guesswork never
 # has to decide.
 *.ts text eol=lf
 *.js text eol=lf
@@ -20,7 +20,7 @@ deploy/deploy.sh text eol=lf
 Dockerfile text eol=lf
 *.service text eol=lf
 
-# Binary — never touch, never diff as text.
+# Binary, never touch, never diff as text.
 *.png binary
 *.jpg binary
 *.jpeg binary

@@ -5,21 +5,21 @@ data, as precisely as we can put it. The short version: **practically no
 data is stored anywhere, and your files never leave your and your
 peer's devices except as encrypted bytes neither the server nor anyone
 watching it can read.** The rest of this document is the detailed,
-honest version of that claim — including the handful of things that
+honest version of that claim, including the handful of things that
 are technically visible in transit, because a privacy policy that hides
 those to sound more impressive isn't one we're willing to write.
 
 This policy describes the software's behavior, which applies the same
 way to the public instance and to anyone's self-hosted copy. If you're
 using someone else's self-hosted instance, they may be able to add
-their own logging — the guarantees below describe what the unmodified
+their own logging. The guarantees below describe what the unmodified
 software does.
 
 ## What we never see or store
 
 - **File contents.** Every file is encrypted in your browser before it
   ever leaves it, with a key derived independently by your peer's
-  browser. The server — including the operator of any instance — only
+  browser. The server, including the operator of any instance, only
   ever handles ciphertext, and only in the fallback relay path (see
   below). When a direct connection is used, your files never touch the
   server's process at all.
@@ -31,7 +31,7 @@ software does.
 - **A history of who transferred what to whom.** There is no database.
   Peer codes and session state live in server process memory only, for
   as long as a connection is open, and disappear the moment it closes.
-- **Files on disk, ever — even temporarily.** The server has no upload
+- **Files on disk, ever, even temporarily.** The server has no upload
   directory, no temp-file staging, no object storage integration. In the
   relay fallback path, each chunk is forwarded from one WebSocket
   connection to the other in memory and is never written anywhere.
@@ -41,21 +41,21 @@ software does.
 Being precise about the parts that aren't invisible:
 
 - **IP addresses.** Like any web service, the server's WebSocket
-  connection sees the IP address of both people while they're connected
-  — used only for the connection itself and for basic abuse-mitigation
+  connection sees the IP address of both people while they're connected,
+  used only for the connection itself and for basic abuse-mitigation
   rate limiting (see [SECURITY.md](SECURITY.md)), never logged to disk
   in the reference implementation. If a direct WebRTC connection is
   attempted, a STUN server (by default, a public one; self-hosters can
   point this at their own) also observes each side's public IP address,
-  exactly as it would for any other WebRTC application — this is an
+  exactly as it would for any other WebRTC application. This is an
   inherent part of how NAT traversal works, not something specific to
   this project. STUN never sees file data.
-- **File sizes and count — not names or content.** To enforce the
+- **File sizes and count, not names or content.** To enforce the
   500-file / 10 GB limits server-side (so they can't be bypassed by a
   modified client) and to show a receiver their progress bar before any
   data arrives, the total byte count and per-file sizes of a batch are
   sent to the server in plain text. Filenames and file contents are not
-  part of this message — see [ARCHITECTURE.md](ARCHITECTURE.md#why-the-manifest-is-split-into-two-parts).
+  part of this message. See [ARCHITECTURE.md](ARCHITECTURE.md#why-the-manifest-is-split-into-two-parts).
 - **That a transfer of a given size happened, while it's happening.**
   An operator watching server memory or network traffic in real time
   could observe that two connections relayed some number of encrypted
@@ -64,8 +64,8 @@ Being precise about the parts that aren't invisible:
   what was sent.
 - **Standard web server access patterns.** Loading the page involves an
   ordinary HTTP request for static files, which is subject to whatever
-  logging your reverse proxy, CDN, or hosting provider does by default
-  — the same as loading any website. This is outside the application's
+  logging your reverse proxy, CDN, or hosting provider does by default,
+  the same as loading any website. This is outside the application's
   own control; if you self-host, see [DEPLOY.md](DEPLOY.md) for guidance
   on keeping proxy logs minimal if that matters to you.
 
@@ -79,8 +79,8 @@ direct connection is attempted.
 
 ## Data retention
 
-There is nothing to retain. Server-side state — peer codes, session
-pairings, in-flight relay bookkeeping — lives in process memory and is
+There is nothing to retain. Server-side state (peer codes, session
+pairings, in-flight relay bookkeeping) lives in process memory and is
 discarded the instant a connection closes or a transfer ends. Restarting
 the server clears everything. There are no backups of something that
 was never stored in the first place.
@@ -99,7 +99,7 @@ repository, with the history visible in version control.
 
 ## Questions
 
-This is open-source software — the most precise privacy policy is the
+This is open-source software. The most precise privacy policy is the
 code itself, in `server/src/` and `client/src/lib/`. If anything in this
 document seems inconsistent with what the code actually does, please
 open an issue; that would be a bug in either the code or the docs, and

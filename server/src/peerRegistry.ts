@@ -14,8 +14,8 @@ export interface Session {
   responder: Peer;
   createdAt: number;
   /** Bytes the sender has handed to the relay but the receiver hasn't
-   *  acknowledged yet. Bounded by config.maxInflightBytesPerSession — this
-   *  is the whole "don't buffer the whole file" mechanism. */
+   *  acknowledged yet. Bounded by config.maxInflightBytesPerSession, the
+   *  whole "don't buffer the whole file" mechanism. */
   inflightBytes: number;
   /** Running total across the session, checked against config.maxTotalBytes
    *  regardless of what any single client-side manifest claims. */

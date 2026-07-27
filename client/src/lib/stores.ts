@@ -26,6 +26,7 @@ export interface AppState {
   channelIsDirect: boolean | null;
   verificationCode: string | null;
   limits: TransferLimits;
+  onlineCount: number | null;
   transfer: {
     role: TransferRole;
     phase: TransferPhase;
@@ -49,6 +50,7 @@ export function initialState(): AppState {
     channelIsDirect: null,
     verificationCode: null,
     limits: { maxFiles: 500, maxTotalBytes: 10 * 1024 ** 3, maxInflightBytes: 16 * 1024 * 1024 },
+    onlineCount: null,
     transfer: {
       role: null,
       phase: 'idle',
@@ -64,9 +66,9 @@ export function initialState(): AppState {
 
 export const appState = writable<AppState>(initialState());
 
-/** Live handles for the active connection — deliberately kept outside the
- *  store since RTCPeerConnection/CryptoKey instances aren't plain data
- *  and don't need to trigger Svelte reactivity on their own. */
+/** Live handles for the active connection, kept outside the store since
+ *  RTCPeerConnection/CryptoKey instances aren't plain data and don't
+ *  need to trigger Svelte reactivity on their own. */
 export const liveConnection: { channel: DataChannelLike | null; secure: SecureChannel | null } = {
   channel: null,
   secure: null,

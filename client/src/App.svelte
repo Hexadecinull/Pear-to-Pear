@@ -24,10 +24,9 @@
     void startSession();
   });
 
-  // Samples transfer progress on a fixed interval rather than reacting to
-  // every single chunk (which would fire hundreds of times a second) -
-  // this effect intentionally reads no reactive state synchronously, so
-  // it mounts once and never re-runs.
+  // Samples progress on an interval instead of reacting to every chunk.
+  // Reads no reactive state synchronously, so it mounts once and never
+  // re-runs.
   $effect(() => {
     let lastBytes = 0;
     let lastTime = performance.now();
@@ -92,14 +91,14 @@
     const combined = [...selectedFiles, ...newFiles];
     const { maxFiles, maxTotalBytes } = $appState.limits;
     if (combined.length > maxFiles) {
-      pickerNotice = `You can select up to ${maxFiles} files at once — kept the first ${maxFiles}.`;
+      pickerNotice = `You can select up to ${maxFiles} files at once, kept the first ${maxFiles}.`;
       selectedFiles = combined.slice(0, maxFiles);
     } else {
       selectedFiles = combined;
     }
     const total = selectedFiles.reduce((sum, f) => sum + f.size, 0);
     if (total > maxTotalBytes) {
-      pickerNotice = `That's ${formatBytes(total)} total — the limit is ${formatBytes(maxTotalBytes)}. Remove some files.`;
+      pickerNotice = `That's ${formatBytes(total)} total, the limit is ${formatBytes(maxTotalBytes)}. Remove some files.`;
     } else if (combined.length <= maxFiles) {
       pickerNotice = null;
     }
@@ -144,7 +143,7 @@
     }
 
     if (sawFolder) {
-      pickerNotice = 'Folders aren’t supported — drop individual files instead.';
+      pickerNotice = 'Folders aren’t supported, drop individual files instead.';
     }
     addFiles(incoming);
   }
@@ -256,6 +255,13 @@
         <li>Nothing stored</li>
         <li>Open source · AGPL-3.0</li>
       </ul>
+
+      {#if $appState.onlineCount !== null}
+        <div class="online-pill">
+          <span class="online-dot" aria-hidden="true"></span>
+          {$appState.onlineCount} {$appState.onlineCount === 1 ? 'person' : 'people'} online
+        </div>
+      {/if}
     {:else}
       <section class="connected-bar">
         <div class="connected-info">
@@ -295,7 +301,7 @@
             />
             <span class="dropzone-title">Drop files here</span>
             <span class="dropzone-sub">
-              or click to browse — up to {$appState.limits.maxFiles} files, {formatBytes(
+              or click to browse, up to {$appState.limits.maxFiles} files, {formatBytes(
                 $appState.limits.maxTotalBytes,
               )} total. No folders.
             </span>
@@ -414,9 +420,13 @@
 
   <footer class="foot">
     <span>Free · open source · AGPL-3.0</span>
-    <a href="https://github.com/Hexadecinull/Pear-to-Pear" target="_blank" rel="noreferrer"
-      >Source</a
-    >
+    <span class="foot-links">
+      <a href="https://github.com/Hexadecinull/Pear-to-Pear" target="_blank" rel="noreferrer"
+        >Source</a
+      >
+      <a href="/terms.html" target="_blank" rel="noreferrer">Terms</a>
+      <a href="/privacy.html" target="_blank" rel="noreferrer">Privacy</a>
+    </span>
   </footer>
 </div>
 
@@ -651,6 +661,29 @@
     padding: 6px 12px;
   }
 
+  .online-pill {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: fit-content;
+    margin: 8px auto 0;
+    padding: 8px 18px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--success);
+    background: rgba(111, 211, 160, 0.08);
+    border: 1px solid rgba(111, 211, 160, 0.35);
+    border-radius: 999px;
+  }
+  .online-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--success);
+    box-shadow: 0 0 6px var(--success);
+  }
+
   .connected-bar {
     display: flex;
     align-items: flex-start;
@@ -857,6 +890,10 @@
   .foot a {
     color: var(--text-muted);
   }
+  .foot-links {
+    display: flex;
+    gap: 14px;
+  }
 
   @media (max-width: 620px) {
     .node-pair {
@@ -885,6 +922,24 @@
       to {
         background-position: 0 0%;
       }
+    }
+
+    /* Button rows size to content by default, which leaves dead space
+       beside short labels like "Copy code" or "Clear". On the narrow
+       viewport that space is wasted rather than reclaimed elsewhere, so
+       let buttons in a row share it evenly instead. */
+    .node-actions button,
+    .picker-actions button {
+      flex: 1;
+    }
+
+    .bond-card {
+      padding: 22px 18px;
+    }
+
+    .peer-code,
+    .code-input {
+      font-size: 1rem;
     }
   }
 </style>

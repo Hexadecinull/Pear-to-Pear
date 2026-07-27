@@ -1,8 +1,8 @@
 /**
  * Control-message protocol spoken over the WebSocket connection.
  *
- * This file MUST stay in sync with server/src/protocol.ts. It's
- * duplicated rather than shared through a package on purpose — see
+ * This file must stay in sync with server/src/protocol.ts. It's
+ * duplicated rather than shared through a package on purpose, see
  * docs/ARCHITECTURE.md, "Why the client and server aren't a monorepo".
  */
 
@@ -34,7 +34,7 @@ export type ServerMessage =
 
 /**
  * Everything the two browsers exchange to set up their own connection.
- * The server relays this opaquely — it never inspects `sdp`/`candidate`,
+ * The server relays this opaquely: it never inspects `sdp`/`candidate`,
  * and the `key` payload is a public key that's only useful when combined
  * with the *other* side's private key, so a passive server operator
  * still can't decrypt the data that follows.

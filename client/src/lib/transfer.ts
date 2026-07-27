@@ -27,7 +27,7 @@ export function resetTransferState(): void {
 }
 
 /** Call once, right after a channel becomes ready. Safe to call from
- *  either bonded peer — whoever didn't initiate a send will use this to
+ *  either bonded peer: whoever didn't initiate a send will use this to
  *  detect and surface an incoming one. Also safe to call again after a
  *  re-bond: the signaling listener attaches only once for the lifetime
  *  of the page, but the channel message handler is rebound every time
@@ -107,7 +107,7 @@ async function handleIncomingFrame(frame: ArrayBuffer): Promise<void> {
     return;
   }
 
-  if (!sink) return; // chunk arrived before the receiver accepted — drop it
+  if (!sink) return; // chunk arrived before the receiver accepted, drop it
 
   await sink.write(header.fileIndex, plaintext);
   appState.update((s) => {
@@ -188,7 +188,7 @@ export function validateSelection(files: File[]): { ok: true } | { ok: false; er
   if (total > maxTotalBytes) {
     return {
       ok: false,
-      error: `That batch is ${formatBytes(total)} — the limit is ${formatBytes(maxTotalBytes)}.`,
+      error: `That batch is ${formatBytes(total)}, the limit is ${formatBytes(maxTotalBytes)}.`,
     };
   }
   return { ok: true };

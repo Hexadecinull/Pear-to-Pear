@@ -1,12 +1,11 @@
 /**
  * Minimal in-memory token bucket, keyed by IP. Only guards connection
- * *establishment* (new WebSocket handshakes and bond attempts) — it has
- * nothing to do with transfer throughput, which is governed separately by
- * the flow-control window in relay.ts.
+ * establishment (new WebSocket handshakes and bond attempts), not
+ * transfer throughput, which is governed separately by relay.ts's
+ * flow-control window.
  *
- * State lives in memory only and is never persisted. It resets on
- * restart, which is fine: this is abuse mitigation, not an accounting
- * system.
+ * State lives in memory only and resets on restart, which is fine:
+ * this is abuse mitigation, not an accounting system.
  */
 export class RateLimiter {
   private buckets = new Map<string, { tokens: number; lastRefill: number }>();

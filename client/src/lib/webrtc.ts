@@ -36,7 +36,7 @@ export class DirectChannel implements DataChannelLike {
 /**
  * Tries to establish a direct browser-to-browser DataChannel using the
  * signaling connection only to exchange SDP/ICE (a few hundred bytes of
- * text, never file data). Resolves `null` — never rejects — if a direct
+ * text, never file data). Resolves `null`, never rejects, if a direct
  * route can't be found within `timeoutMs`, so the caller can fall back to
  * the relay without treating it as an error. This is expected and normal
  * on strict corporate networks or symmetric NATs; see ARCHITECTURE.md.

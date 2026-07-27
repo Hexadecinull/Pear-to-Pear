@@ -79,6 +79,22 @@ export async function startSession(): Promise<void> {
 
   // Keep the signaling connection alive through idle NAT/proxy timeouts.
   setInterval(() => signaling?.send({ type: 'ping' }), 25_000);
+
+  void pollOnlineCount();
+  setInterval(() => void pollOnlineCount(), 7_000);
+}
+
+async function pollOnlineCount(): Promise<void> {
+  try {
+    const res = await fetch('/stats', { cache: 'no-store' });
+    if (!res.ok) return;
+    const data = (await res.json()) as { online?: unknown };
+    if (typeof data.online === 'number') {
+      appState.update((s) => ({ ...s, onlineCount: data.online as number }));
+    }
+  } catch {
+    // Non-critical: just skip this tick and try again on the next one.
+  }
 }
 
 async function negotiateChannel(role: 'initiator' | 'responder'): Promise<void> {

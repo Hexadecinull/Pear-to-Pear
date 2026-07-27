@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "license": "AGPL-3.0-only",
-  "description": "Free, open-source, end-to-end encrypted peer-to-peer file transfer — convenience scripts. See client/ and server/ for the actual projects.",
+  "description": "Free, open-source, end-to-end encrypted peer-to-peer file transfer: convenience scripts. See client/ and server/ for the actual projects.",
   "scripts": {
     "install:all": "npm --prefix client install && npm --prefix server install",
     "build": "npm --prefix client run build && npm --prefix server run build",

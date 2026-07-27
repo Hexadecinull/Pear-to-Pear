@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Pulls the latest master and rebuilds/restarts Pear-to-Pear.
-# Invoked by listener.mjs after it verifies a GitHub push webhook — never
+# Invoked by listener.mjs after it verifies a GitHub push webhook. Never
 # run this with untrusted input; it takes no arguments and reads only
 # REPO_DIR / DEPLOY_MODE from the environment, both of which you set
 # yourself (see deploy/webhook/.env.example), never from the webhook

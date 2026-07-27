@@ -1,13 +1,12 @@
 /**
  * Control-message protocol spoken over the WebSocket connection.
  *
- * This file MUST stay in sync with client/src/lib/protocol.ts — the two
- * are intentionally not shared via a package because the project is meant
- * to stay simple to self-host (see docs/ARCHITECTURE.md for why).
+ * This file must stay in sync with client/src/lib/protocol.ts. The two
+ * are kept separate rather than shared via a package, see
+ * docs/ARCHITECTURE.md.
  *
- * Every message here is sent as a JSON text frame. Binary frames (the
- * actual encrypted file chunks) are never parsed by the server as JSON —
- * see relay.ts for the binary chunk header layout.
+ * Every message here is a JSON text frame. Binary frames (the encrypted
+ * file chunks) are never parsed as JSON; see relay.ts for that layout.
  */
 
 export type ClientMessage =

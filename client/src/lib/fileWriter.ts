@@ -3,7 +3,7 @@
  * to a file the person picks via the File System Access API, so a 10 GB
  * transfer never has to sit in memory. On browsers without that API
  * (Firefox, Safari, as of this writing) we fall back to buffering each
- * file and triggering a normal download when it's complete — the UI
+ * file and triggering a normal download once it's complete. The UI
  * warns about this up front so it's never a surprise mid-transfer.
  */
 export interface OutputSink {
@@ -35,7 +35,7 @@ export function supportsFileSystemAccess(): boolean {
 
 /**
  * Must be called synchronously-ish from within a user gesture (the
- * "Receive" button click) — the underlying picker APIs require one.
+ * "Receive" button click); the underlying picker APIs require one.
  */
 export async function createOutputSink(names: string[]): Promise<OutputSink> {
   const w = window as unknown as {
@@ -62,7 +62,7 @@ export async function createOutputSink(names: string[]): Promise<OutputSink> {
     }
   } catch (err) {
     // User cancelled the picker, or the API refused (e.g. blocked by a
-    // browser policy) — fall back rather than failing the transfer.
+    // browser policy), fall back rather than failing the transfer.
     if (err instanceof DOMException && err.name === 'AbortError') throw err;
   }
 

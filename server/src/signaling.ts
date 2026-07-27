@@ -3,6 +3,7 @@ import { config } from './config.js';
 import { Peer, PeerRegistry } from './peerRegistry.js';
 import { PEER_CODE_PATTERN, type ClientMessage, type ServerMessage } from './protocol.js';
 import { handleBinaryChunk, RelayLimitExceeded } from './relay.js';
+import { connectionOpened, connectionClosed } from './stats.js';
 
 function send(socket: WebSocket, message: ServerMessage): void {
   if (socket.readyState !== socket.OPEN) return;
@@ -12,6 +13,7 @@ function send(socket: WebSocket, message: ServerMessage): void {
 export function attachConnection(socket: WebSocket, ip: string, registry: PeerRegistry): void {
   const peer = new Peer(socket, ip);
   registry.register(peer);
+  connectionOpened();
 
   send(socket, {
     type: 'welcome',
@@ -40,6 +42,7 @@ export function attachConnection(socket: WebSocket, ip: string, registry: PeerRe
   });
 
   socket.on('close', () => {
+    connectionClosed();
     const session = peer.session;
     registry.remove(peer);
     if (session) {

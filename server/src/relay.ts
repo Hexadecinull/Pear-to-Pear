@@ -3,29 +3,10 @@ import { config } from './config.js';
 import type { Peer, Session } from './peerRegistry.js';
 
 /**
- * Streams encrypted file chunks from one bonded peer to the other without
- * ever touching disk and without ever holding more than a small, fixed
- * window of a transfer in memory — regardless of whether the file is
- * 10 MB or the full 10 GB cap.
- *
- * How the bound is enforced:
- *
- *   1. Every chunk arrives as one binary WebSocket frame:
- *        [ fileIndex: u16 ][ chunkIndex: u32 ][ flags: u8 ][ nonce(12) + ciphertext+tag ]
- *      The server never decrypts this payload — it only reads the 7-byte
- *      header (for bookkeeping) and forwards the rest as opaque bytes.
- *
- *   2. Before forwarding, we check the *receiver's* underlying socket
- *      buffer (`bufferedAmount`) — i.e. how much data the server has
- *      handed to the OS to send but the receiver hasn't pulled down yet.
- *      If that backlog exceeds `maxInflightBytesPerSession`, we pause
- *      reading from the sender's socket. TCP backpressure then propagates
- *      all the way back to the sender's browser, which simply stops
- *      handing over new chunks until we resume it.
- *
- *   3. This turns the whole pipeline into a bounded pipe: sender -> (WS) ->
- *      relay -> (WS) -> receiver, with at most `maxInflightBytesPerSession`
- *      bytes resident in memory at any point, no matter the total size.
+ * Streams encrypted chunks between two bonded peers without touching
+ * disk and without holding more than a small, fixed window of a
+ * transfer in memory, no matter the file size. Full design (the binary
+ * frame layout and why the bound holds) is in docs/ARCHITECTURE.md.
  */
 
 const HEADER_BYTES = 7;

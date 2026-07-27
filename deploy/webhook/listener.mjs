@@ -6,7 +6,7 @@
  * way.
  *
  * This deliberately runs as its own process, separate from the main
- * Pear-to-Pear server — see docs/DEPLOY.md, "Automatic deployment via
+ * Pear-to-Pear server, see docs/DEPLOY.md, "Automatic deployment via
  * GitHub Webhooks", for why. In short: if the app runs in Docker,
  * something has to live *outside* that container to rebuild and restart
  * it, and keeping deploy-triggering code out of the internet-facing
@@ -34,7 +34,7 @@ const DEPLOY_SCRIPT = process.env.DEPLOY_SCRIPT ?? join(__dirname, 'deploy.sh');
 
 if (!SECRET) {
   console.error(
-    '[webhook] WEBHOOK_SECRET is not set — refusing to start. ' +
+    '[webhook] WEBHOOK_SECRET is not set, refusing to start. ' +
       'Generate one with `openssl rand -hex 32` and see docs/DEPLOY.md.',
   );
   process.exit(1);
@@ -46,14 +46,14 @@ function verifySignature(rawBody, header) {
   const provided = header.slice('sha256='.length);
   const expectedBuf = Buffer.from(expected, 'utf8');
   const providedBuf = Buffer.from(provided, 'utf8');
-  // Constant-time comparison — a naive `===` here would leak timing
+  // Constant-time comparison: a naive `===` here would leak timing
   // information an attacker could use to forge a valid signature byte
   // by byte.
   return expectedBuf.length === providedBuf.length && timingSafeEqual(expectedBuf, providedBuf);
 }
 
 function runDeploy() {
-  console.log(`[webhook] verified push to ${BRANCH_REF} — starting deploy: ${DEPLOY_SCRIPT}`);
+  console.log(`[webhook] verified push to ${BRANCH_REF}, starting deploy: ${DEPLOY_SCRIPT}`);
   const child = spawn('/usr/bin/env', ['bash', DEPLOY_SCRIPT], {
     detached: true,
     stdio: 'ignore',

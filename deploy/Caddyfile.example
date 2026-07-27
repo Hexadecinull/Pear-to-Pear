@@ -1,7 +1,7 @@
 # Example Caddyfile for a self-hosted deploy fronted by Caddy.
 # Caddy handles TLS automatically (via Let's Encrypt) and proxies both
-# normal HTTP requests and WebSocket upgrades to the Node process —
-# no special WebSocket configuration needed, Caddy detects the Upgrade
+# normal HTTP requests and WebSocket upgrades to the Node process,
+# no special WebSocket configuration needed. Caddy detects the Upgrade
 # header itself.
 #
 # Copy this to /etc/caddy/Caddyfile (or your platform's equivalent),
