@@ -56,12 +56,33 @@ function runDeploy() {
   console.log(`[webhook] verified push to ${BRANCH_REF}, starting deploy: ${DEPLOY_SCRIPT}`);
   const child = spawn('/usr/bin/env', ['bash', DEPLOY_SCRIPT], {
     detached: true,
-    stdio: 'ignore',
+    stdio: ['ignore', 'pipe', 'pipe'],
     env: process.env,
   });
-  // Detach fully: if DEPLOY_SCRIPT restarts a container or service this
-  // listener itself depends on, the child must survive independently of
-  // this process's own lifecycle.
+
+  child.stdout.on('data', (chunk) => {
+    process.stdout.write(`[deploy] ${chunk}`);
+  });
+  child.stderr.on('data', (chunk) => {
+    process.stderr.write(`[deploy:err] ${chunk}`);
+  });
+  child.on('error', (err) => {
+    console.error(`[webhook] failed to start deploy script: ${err.message}`);
+  });
+  child.on('exit', (code, signal) => {
+    if (code === 0) {
+      console.log('[webhook] deploy finished successfully');
+    } else {
+      console.error(`[webhook] deploy FAILED (exit code ${code}, signal ${signal})`);
+    }
+  });
+
+  // Detached (not the same as unlogged): if DEPLOY_SCRIPT restarts a
+  // container or service this listener itself depends on, the child
+  // must survive independently of this process's own lifecycle. unref()
+  // only affects whether the child keeps the parent's event loop alive;
+  // the listeners above still fire normally for as long as this
+  // long-running service process stays up, which is always.
   child.unref();
 }
 

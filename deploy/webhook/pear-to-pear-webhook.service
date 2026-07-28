@@ -26,8 +26,17 @@ User=CHANGE_ME
 # deploy.sh does a `git reset --hard` and rebuilds inside REPO_DIR, so
 # it does NOT use ProtectSystem=strict. ReadWritePaths grants exactly
 # the one directory it needs.
+#
+# No ProtectHome here on purpose: Docker Compose can depend on files
+# under the deploying user's home directory (~/.docker/config.json,
+# per-user CLI plugins, credential helpers). Hiding /home made `docker
+# compose` behave differently under this service than it does in an
+# interactive shell as the same user, which is exactly the kind of gap
+# that turns into "works when I test it, silently doesn't when the
+# webhook fires." If you don't need Docker (DEPLOY_MODE=systemd) and
+# want the extra hardening back, ProtectHome=read-only is a safer
+# middle ground than =true: it still blocks writes to $HOME.
 NoNewPrivileges=true
-ProtectHome=true
 PrivateTmp=true
 ReadWritePaths=/opt/pear-to-pear
 
