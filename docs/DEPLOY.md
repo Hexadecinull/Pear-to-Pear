@@ -226,12 +226,21 @@ missing user fails immediately with systemd status `217/USER`).
   created in Option B's step 2 above. It already owns `REPO_DIR` and
   already has the sudoers rule (below) to restart the app service.
 
-Either way, edit the unit file before installing it:
+Either way, **don't edit the unit file itself to set this.** Every time
+you update (`git pull` then `cp deploy/webhook/pear-to-pear-webhook.service
+/etc/systemd/system/`), that file gets fully overwritten with the repo's
+copy, silently reverting `User=` back to `CHANGE_ME` and breaking the
+service again. Instead, set it in a systemd drop-in override, which
+lives in a separate file systemd merges on top and which a future `cp`
+of the main unit never touches:
 
 ```bash
-nano deploy/webhook/pear-to-pear-webhook.service
-# change: User=CHANGE_ME
-# to:     User=<your chosen user>
+sudo mkdir -p /etc/systemd/system/pear-to-pear-webhook.service.d
+sudo cp deploy/webhook/override.conf.example \
+  /etc/systemd/system/pear-to-pear-webhook.service.d/override.conf
+sudo nano /etc/systemd/system/pear-to-pear-webhook.service.d/override.conf
+# set User= to your chosen user
+sudo systemctl daemon-reload
 ```
 
 If you're using `DEPLOY_MODE=systemd`, the listener also needs

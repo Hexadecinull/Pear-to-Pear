@@ -1,0 +1,22 @@
+# Systemd drop-in override for pear-to-pear-webhook.service.
+#
+# Install this at:
+#   /etc/systemd/system/pear-to-pear-webhook.service.d/override.conf
+#
+# Drop-ins are merged on top of the main unit file at daemon-reload
+# time, rather than replacing it. That's the point: the main unit file
+# (pear-to-pear-webhook.service) gets replaced wholesale every time you
+# update it from the repo, so anything you edit directly in that file
+# is silently lost on the next `cp`. Settings here survive that, since
+# nothing in the update process ever touches this file.
+#
+# Setup:
+#   sudo mkdir -p /etc/systemd/system/pear-to-pear-webhook.service.d
+#   sudo cp deploy/webhook/override.conf.example \
+#     /etc/systemd/system/pear-to-pear-webhook.service.d/override.conf
+#   sudo nano /etc/systemd/system/pear-to-pear-webhook.service.d/override.conf
+#   sudo systemctl daemon-reload
+#   sudo systemctl restart pear-to-pear-webhook
+
+[Service]
+User=CHANGE_ME
