@@ -44,10 +44,19 @@ export function attachConnection(socket: WebSocket, ip: string, registry: PeerRe
   socket.on('close', () => {
     connectionClosed();
     const session = peer.session;
-    registry.remove(peer);
+    const { pendingRequester, pendingTarget } = registry.remove(peer);
     if (session) {
       const other = session.initiator === peer ? session.responder : session.initiator;
       send(other.socket, { type: 'peer-disconnected' });
+    }
+    if (pendingRequester) {
+      send(pendingRequester.socket, {
+        type: 'bond-failed',
+        reason: 'Your peer disconnected before responding.',
+      });
+    }
+    if (pendingTarget) {
+      send(pendingTarget.socket, { type: 'bond-request-cancelled' });
     }
   });
 }
@@ -90,9 +99,41 @@ function onControl(peer: Peer, registry: PeerRegistry, raw: RawData): void {
         send(peer.socket, { type: 'bond-failed', reason: 'That code doesn’t look right.' });
         return;
       }
-      const result = registry.bond(peer, code);
+      const result = registry.requestBond(peer, code);
       if ('error' in result) {
         send(peer.socket, { type: 'bond-failed', reason: result.error });
+        return;
+      }
+      const { target } = result;
+      send(peer.socket, { type: 'bond-pending' });
+      send(target.socket, { type: 'bond-request' });
+      target.pendingRequestTimer = setTimeout(() => {
+        const requester = registry.resolvePendingRequest(target);
+        if (requester) {
+          send(requester.socket, {
+            type: 'bond-failed',
+            reason: 'Your peer did not respond in time.',
+          });
+        }
+      }, config.pendingBondTimeoutMs);
+      return;
+    }
+
+    case 'bond-response': {
+      const requester = registry.resolvePendingRequest(peer);
+      if (!requester) return;
+
+      if (!msg.accept) {
+        send(requester.socket, {
+          type: 'bond-failed',
+          reason: 'The other person declined the connection.',
+        });
+        return;
+      }
+
+      const result = registry.bond(requester, peer.code);
+      if ('error' in result) {
+        send(requester.socket, { type: 'bond-failed', reason: result.error });
         return;
       }
       const { session } = result;
@@ -103,13 +144,20 @@ function onControl(peer: Peer, registry: PeerRegistry, raw: RawData): void {
 
     case 'unbond': {
       const session = peer.session;
-      if (!session) return;
-      const other = session.initiator === peer ? session.responder : session.initiator;
-      registry.endSession(session);
-      registry.register(peer);
-      registry.register(other);
-      send(peer.socket, { type: 'code', code: peer.code });
-      send(other.socket, { type: 'peer-disconnected' });
+      if (session) {
+        const other = session.initiator === peer ? session.responder : session.initiator;
+        registry.endSession(session);
+        registry.register(peer);
+        registry.register(other);
+        send(peer.socket, { type: 'code', code: peer.code });
+        send(other.socket, { type: 'peer-disconnected' });
+        return;
+      }
+      if (peer.pendingRequestTo) {
+        const target = peer.pendingRequestTo;
+        registry.resolvePendingRequest(target);
+        send(target.socket, { type: 'bond-request-cancelled' });
+      }
       return;
     }
 

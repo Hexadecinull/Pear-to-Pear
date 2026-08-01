@@ -4,7 +4,7 @@ import type { SecureChannel } from './crypto';
 import type { TransferLimits } from './protocol';
 
 export type ConnectionStatus = 'connecting' | 'connected' | 'disconnected';
-export type BondStatus = 'idle' | 'bonding' | 'bonded';
+export type BondStatus = 'idle' | 'bonding' | 'pending-response' | 'bonded';
 export type ChannelState = 'negotiating' | 'ready' | null;
 export type TransferRole = 'sender' | 'receiver' | null;
 export type TransferPhase =
@@ -21,6 +21,8 @@ export interface AppState {
   myCode: string;
   bond: BondStatus;
   bondError: string | null;
+  /** Someone entered my code and is waiting for me to accept or decline. */
+  incomingBondRequest: boolean;
   peerRole: 'initiator' | 'responder' | null;
   channel: ChannelState;
   channelIsDirect: boolean | null;
@@ -45,6 +47,7 @@ export function initialState(): AppState {
     myCode: '',
     bond: 'idle',
     bondError: null,
+    incomingBondRequest: false,
     peerRole: null,
     channel: null,
     channelIsDirect: null,

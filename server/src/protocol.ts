@@ -12,6 +12,7 @@
 export type ClientMessage =
   | { type: 'regenerate' }
   | { type: 'bond'; code: string }
+  | { type: 'bond-response'; accept: boolean }
   | { type: 'unbond' }
   | { type: 'signal'; payload: unknown }
   | { type: 'manifest'; fileCount: number; totalBytes: number; fileSizes: number[] }
@@ -23,6 +24,9 @@ export type ClientMessage =
 export type ServerMessage =
   | { type: 'welcome'; code: string; limits: TransferLimits }
   | { type: 'code'; code: string }
+  | { type: 'bond-pending' }
+  | { type: 'bond-request' }
+  | { type: 'bond-request-cancelled' }
   | { type: 'bonded'; role: 'initiator' | 'responder' }
   | { type: 'bond-failed'; reason: string }
   | { type: 'peer-disconnected' }

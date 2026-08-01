@@ -53,6 +53,12 @@ and, just as importantly, what it doesn't cover.
   connection-spam or code-guessing scripts impractical; combined with
   256-bit peer codes, brute-forcing a code by guessing is not
   computationally feasible.
+- **Explicit consent before bonding.** Entering a code doesn't bond you
+  to its owner automatically, they get an accept/decline prompt first.
+  A code can leak in ways that have nothing to do with weak entropy
+  (mistyped and sent to the wrong person, read over someone's shoulder),
+  so guessing resistance alone doesn't cover unintended disclosure; this
+  does.
 
 ### What this does *not* protect against
 

@@ -67,13 +67,24 @@ and sends it to the client as that client's **peer code**. The code:
 
 When someone enters a code they received, their client sends
 `{ type: 'bond', code }`. The server looks the code up; if it's active
-and not already bonded to someone else, both sockets are linked into a
-**session** and the code is removed from the waiting pool (so it can't
-be reused by a third party mid-handshake). There is deliberately no
-"accept" step on the other side. Receiving someone's code out-of-band
-(you had to be given it directly) is treated as sufficient authorization
-to bond, matching how the product is meant to feel: you and one other
-specific person, nothing more.
+and not already bonded (or pending) with someone else, it doesn't bond
+the two immediately. Instead, the code's owner gets a `bond-request`
+and the requester gets `bond-pending` while they wait. A code can leak
+in ways its owner never intended (mistyped and sent to the wrong
+person, shoulder-surfed, forwarded by accident), so the owner gets the
+final say before anything is shared with whoever holds it.
+
+The owner replies with `{ type: 'bond-response', accept }`. On accept,
+the server removes both codes from the waiting pool (so neither can be
+reused by a third party mid-handshake) and links both sockets into a
+**session**; both sides get `bonded`. On decline, the requester gets
+`bond-failed` and the owner's code stays valid and unbonded, exactly as
+if nothing happened, so a genuine peer who mistyped something can just
+try again. An unanswered request auto-expires after
+`PENDING_BOND_TIMEOUT_MS` (default 30s) with the same effect as a
+decline. Either side disconnecting while a request is pending resolves
+it the same way, whoever was waiting on the other gets notified rather
+than left hanging.
 
 Bonding assigns one side the WebRTC `initiator` role (whoever's code was
 entered, they'll create the SDP offer) and the other `responder`. This
@@ -139,8 +150,9 @@ Defined once per side, kept manually in sync
 | Client → Server | Purpose |
 |---|---|
 | `regenerate` | Ask for a new peer code (only while unbonded) |
-| `bond` | Attempt to bond to a given code |
-| `unbond` | Leave the current session voluntarily |
+| `bond` | Request to bond to a given code (needs the owner's acceptance) |
+| `bond-response` | Accept or decline a pending incoming request |
+| `unbond` | Leave the current session, or cancel a pending request, voluntarily |
 | `signal` | Opaque WebRTC/key-exchange payload, relayed as-is |
 | `manifest` | Declare an outgoing batch: file count, total bytes, per-file sizes |
 | `receive-ready` | "I've accepted the incoming transfer, start sending" |
@@ -152,8 +164,11 @@ Defined once per side, kept manually in sync
 |---|---|
 | `welcome` | Initial code + the active server-side limits |
 | `code` | New code, after a regenerate or unbond |
+| `bond-pending` | Your request reached the code's owner; awaiting their decision |
+| `bond-request` | Someone entered your code; accept or decline it |
+| `bond-request-cancelled` | The pending request on your code is no longer waiting |
 | `bonded` | Bond succeeded; carries your `initiator`/`responder` role |
-| `bond-failed` | Bad/unknown/already-bonded code |
+| `bond-failed` | Bad/unknown code, already bonded/pending, declined, or timed out |
 | `peer-disconnected` | The other side's socket closed |
 | `signal` | Opaque payload forwarded from your peer |
 | `manifest` | Forwarded batch metadata (sizes only, see below) |

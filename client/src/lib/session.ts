@@ -7,6 +7,25 @@ import { PEER_CODE_PATTERN } from './protocol';
 import { setupIncomingTransferListener, resetTransferState } from './transfer';
 
 const DIRECT_CONNECTION_TIMEOUT_MS = 4000;
+const NEGOTIATION_TIMEOUT_MS = 15_000;
+
+class TimeoutError extends Error {}
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new TimeoutError('timed out')), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (err) => {
+        clearTimeout(timer);
+        reject(err);
+      },
+    );
+  });
+}
 
 let signaling: SignalingClient | null = null;
 let myKeys: KeyPair | null = null;
@@ -42,7 +61,24 @@ export async function startSession(): Promise<void> {
   });
 
   signaling.on('bond-failed', (msg) => {
-    appState.update((s) => ({ ...s, bond: 'idle', bondError: msg.reason }));
+    appState.update((s) => ({
+      ...s,
+      bond: 'idle',
+      bondError: msg.reason,
+      incomingBondRequest: false,
+    }));
+  });
+
+  signaling.on('bond-pending', () => {
+    appState.update((s) => ({ ...s, bond: 'pending-response' }));
+  });
+
+  signaling.on('bond-request', () => {
+    appState.update((s) => ({ ...s, incomingBondRequest: true }));
+  });
+
+  signaling.on('bond-request-cancelled', () => {
+    appState.update((s) => ({ ...s, incomingBondRequest: false }));
   });
 
   signaling.on('bonded', (msg) => {
@@ -50,6 +86,7 @@ export async function startSession(): Promise<void> {
       ...s,
       bond: 'bonded',
       bondError: null,
+      incomingBondRequest: false,
       peerRole: msg.role,
       channel: 'negotiating',
     }));
@@ -98,6 +135,20 @@ async function pollOnlineCount(): Promise<void> {
 }
 
 async function negotiateChannel(role: 'initiator' | 'responder'): Promise<void> {
+  if (!signaling) return;
+
+  try {
+    await withTimeout(negotiateChannelInner(role), NEGOTIATION_TIMEOUT_MS);
+  } catch {
+    // Whatever failed (a hung step, a thrown exception, or the timeout
+    // above), the person should never be left staring at "Securing
+    // connection…" forever with no way out. Tear the bond down
+    // properly on both sides and surface a plain, actionable message.
+    abortBond('Connection setup failed or timed out. Please try again.');
+  }
+}
+
+async function negotiateChannelInner(role: 'initiator' | 'responder'): Promise<void> {
   if (!signaling) return;
 
   myKeys = await generateKeyPair();
@@ -152,6 +203,19 @@ export function leaveBond(): void {
   resetBond(null);
 }
 
+export function respondToBondRequest(accept: boolean): void {
+  signaling?.send({ type: 'bond-response', accept });
+  appState.update((s) => ({ ...s, incomingBondRequest: false }));
+}
+
+function abortBond(reason: string): void {
+  // Same server-side cleanup as leaveBond (properly ends the session so
+  // the other side is freed too, not just our own local state), but for
+  // an internal failure rather than a deliberate user action.
+  signaling?.send({ type: 'unbond' });
+  resetBond(reason);
+}
+
 function resetBond(reason: string | null): void {
   liveConnection.channel?.close();
   liveConnection.channel = null;
@@ -162,6 +226,7 @@ function resetBond(reason: string | null): void {
     ...s,
     bond: 'idle',
     bondError: reason,
+    incomingBondRequest: false,
     peerRole: null,
     channel: null,
     channelIsDirect: null,

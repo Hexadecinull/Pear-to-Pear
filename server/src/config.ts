@@ -27,6 +27,7 @@ export const config = {
   maxTotalBytes: int('MAX_TOTAL_BYTES', 10 * 1024 * 1024 * 1024),
   maxInflightBytesPerSession: int('MAX_INFLIGHT_BYTES_PER_SESSION', 16 * 1024 * 1024),
   codeIdleTimeoutMs: int('CODE_IDLE_TIMEOUT_MS', 30 * 60 * 1000),
+  pendingBondTimeoutMs: int('PENDING_BOND_TIMEOUT_MS', 30 * 1000),
   rateLimitPerMinute: int('RATE_LIMIT_MAX_CONNECTIONS_PER_MINUTE', 30),
   allowedOrigins: list('ALLOWED_ORIGINS', ['*']),
   trustProxy: bool('TRUST_PROXY', true),

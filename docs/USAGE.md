@@ -29,8 +29,15 @@ in person).
 ### Bonding with someone
 
 Paste the code they gave you into the **Peer** field and hit **Connect**
-(or press Enter). If it's valid and still active, you'll both see
-**Connected**. From that point on:
+(or press Enter). This doesn't bond you immediately: the code's owner
+sees an **incoming connection request** on their screen and has to hit
+**Accept** before anything else happens. Codes can end up in the wrong
+hands in ways that have nothing to do with you (a typo sends it to the
+wrong chat, someone glances at a screen), so the owner always gets the
+final say over who they bond with. While you wait, you'll see "Waiting
+for them to accept…" with a **Cancel** option if you change your mind.
+
+If they accept, you'll both see **Connected**. From that point on:
 
 - A badge tells you whether you're connected **Direct P2P** (files will
   go straight between your two browsers, never through the server) or
@@ -42,9 +49,14 @@ Paste the code they gave you into the **Peer** field and hit **Connect**
   with the connection, read it to each other over voice or a separate
   chat. If the numbers match, you're really talking to each other.
 
-If bonding fails, you'll see why: the code was mistyped, it's expired
-(the other person refreshed or closed their tab), or it's already
-bonded to somebody else. Ask for a fresh code and try again.
+If they decline, or don't respond within 30 seconds, you'll see that
+the request didn't go through, your peer's code stays valid either way,
+so if it was a mistake on their end, just try again.
+
+If bonding fails outright, you'll see why: the code was mistyped, it's
+expired (the other person refreshed or closed their tab), or it's
+already bonded (or has a pending request) with somebody else. Ask for a
+fresh code and try again.
 
 **Disconnect** ends the bond on purpose, from either side, and gets you
 a new code to start over with.

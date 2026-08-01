@@ -28,6 +28,11 @@ export class Peer {
   code: string;
   session: Session | null = null;
   idleTimer: NodeJS.Timeout | null = null;
+  /** Someone entered my code and is waiting for me to accept or decline. */
+  pendingRequestFrom: Peer | null = null;
+  /** I entered someone else's code and am waiting for their decision. */
+  pendingRequestTo: Peer | null = null;
+  pendingRequestTimer: NodeJS.Timeout | null = null;
 
   constructor(
     public readonly socket: WebSocket,
@@ -55,7 +60,44 @@ export class PeerRegistry {
     return peer.code;
   }
 
-  /** Attempt to bond `requester` to whoever is waiting under `code`. */
+  /**
+   * `requester` entered `code`. Rather than bonding immediately, this
+   * flags the code's owner as having a pending decision to make. A code
+   * can never be truly kept secret from everyone (it can be mistyped,
+   * shoulder-surfed, or forwarded by accident), so the owner gets the
+   * final say before anything is shared with whoever holds it.
+   */
+  requestBond(requester: Peer, code: string): { target: Peer } | { error: string } {
+    if (requester.session) return { error: 'You are already bonded to a peer.' };
+    if (requester.pendingRequestTo) return { error: 'You already have a request pending.' };
+    if (code === requester.code) return { error: 'You cannot bond to your own code.' };
+
+    const target = this.waiting.get(code);
+    if (!target) return { error: 'That code is not active. Ask your peer for a fresh one.' };
+    if (target.session) return { error: 'That code is already bonded to someone else.' };
+    if (target.pendingRequestFrom) {
+      return { error: 'That code already has a pending connection request.' };
+    }
+
+    target.pendingRequestFrom = requester;
+    requester.pendingRequestTo = target;
+    return { target };
+  }
+
+  /** Clears whatever pending request `target` is sitting on (if any) and
+   *  returns the requester who was waiting, so the caller can notify them. */
+  resolvePendingRequest(target: Peer): Peer | null {
+    const requester = target.pendingRequestFrom;
+    target.pendingRequestFrom = null;
+    if (target.pendingRequestTimer) {
+      clearTimeout(target.pendingRequestTimer);
+      target.pendingRequestTimer = null;
+    }
+    if (requester) requester.pendingRequestTo = null;
+    return requester;
+  }
+
+  /** Finalize a bond after the code owner has accepted. */
   bond(requester: Peer, code: string): { session: Session } | { error: string } {
     if (requester.session) return { error: 'You are already bonded to a peer.' };
     if (code === requester.code) return { error: 'You cannot bond to your own code.' };
@@ -93,11 +135,35 @@ export class PeerRegistry {
     }
   }
 
-  /** Fully remove a peer (socket closed) from whatever state it's in. */
-  remove(peer: Peer): void {
+  /** Fully remove a peer (socket closed) from whatever state it's in.
+   *  Returns anyone who needs to be notified as a result, since sending
+   *  messages isn't this module's job. */
+  remove(peer: Peer): { pendingRequester: Peer | null; pendingTarget: Peer | null } {
     this.clearIdleTimeout(peer);
     this.waiting.delete(peer.code);
     if (peer.session) this.endSession(peer.session);
+
+    // Someone was waiting on a decision from me; they need to know I'm gone.
+    const pendingRequester = peer.pendingRequestFrom;
+    if (pendingRequester) pendingRequester.pendingRequestTo = null;
+    peer.pendingRequestFrom = null;
+    if (peer.pendingRequestTimer) {
+      clearTimeout(peer.pendingRequestTimer);
+      peer.pendingRequestTimer = null;
+    }
+
+    // I was waiting on someone else's decision; clear their side too.
+    const pendingTarget = peer.pendingRequestTo;
+    if (pendingTarget) {
+      pendingTarget.pendingRequestFrom = null;
+      if (pendingTarget.pendingRequestTimer) {
+        clearTimeout(pendingTarget.pendingRequestTimer);
+        pendingTarget.pendingRequestTimer = null;
+      }
+    }
+    peer.pendingRequestTo = null;
+
+    return { pendingRequester, pendingTarget };
   }
 
   private armIdleTimeout(peer: Peer): void {

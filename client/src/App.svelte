@@ -1,7 +1,13 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { appState } from './lib/stores';
-  import { startSession, regenerateCode, bondWithCode, leaveBond } from './lib/session';
+  import {
+    startSession,
+    regenerateCode,
+    bondWithCode,
+    leaveBond,
+    respondToBondRequest,
+  } from './lib/session';
   import {
     validateSelection,
     sendFiles,
@@ -203,6 +209,17 @@
 
   <main class="stage">
     {#if $appState.bond !== 'bonded' || $appState.channel !== 'ready'}
+      {#if $appState.incomingBondRequest}
+        <section class="incoming-bond">
+          <h2>Incoming connection request</h2>
+          <p class="hint">Someone entered your code and wants to connect.</p>
+          <div class="picker-actions">
+            <button class="ghost" onclick={() => respondToBondRequest(false)}>Decline</button>
+            <button class="primary" onclick={() => respondToBondRequest(true)}>Accept</button>
+          </div>
+        </section>
+      {/if}
+
       <section class="bond-card">
         <div class="node-pair">
           <div class="node">
@@ -222,6 +239,11 @@
             <h2>Peer</h2>
             {#if $appState.bond === 'bonded'}
               <p class="hint">Securing connection…</p>
+            {:else if $appState.bond === 'pending-response'}
+              <p class="hint">Waiting for them to accept…</p>
+              <div class="node-actions">
+                <button class="ghost" onclick={leaveBond}>Cancel</button>
+              </div>
             {:else}
               <input
                 class="code-input"
@@ -425,8 +447,16 @@
       <a href="https://github.com/Hexadecinull/Pear-to-Pear" target="_blank" rel="noreferrer"
         >Source</a
       >
-      <a href="/terms.html" target="_blank" rel="noreferrer">Terms</a>
-      <a href="/privacy.html" target="_blank" rel="noreferrer">Privacy</a>
+      <a
+        href="/terms.html"
+        target={$appState.bond === 'bonded' ? '_blank' : '_self'}
+        rel="noreferrer">Terms</a
+      >
+      <a
+        href="/privacy.html"
+        target={$appState.bond === 'bonded' ? '_blank' : '_self'}
+        rel="noreferrer">Privacy</a
+      >
     </span>
   </footer>
 </div>
@@ -734,6 +764,7 @@
 
   section.picker,
   section.incoming,
+  section.incoming-bond,
   section.waiting,
   section.transferring,
   section.done {
@@ -744,6 +775,9 @@
     display: flex;
     flex-direction: column;
     gap: 14px;
+  }
+  section.incoming-bond {
+    border-color: var(--accent-dim);
   }
 
   .dropzone {
